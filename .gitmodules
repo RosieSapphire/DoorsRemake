@@ -1,0 +1,6 @@
+[submodule "deps/sightseer"]
+	path = deps/sightseer
+	url = https://github.com/RosieSapphire/Sightseer.git
+[submodule "deps/rmath"]
+	path = deps/rmath
+	url = https://github.com/RosieSapphire/RubyMath.git
