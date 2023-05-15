@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <math.h>
@@ -62,15 +63,12 @@ int main(void)
 
 	struct input input;
 
+	bool just_hit_right_click = false;
+
 	while(!glfwWindowShouldClose(window)) {
 		float time_now = glfwGetTime();
 		float time_delta = time_now - time_last;
 		time_last = time_now;
-
-		double mouse_x, mouse_y;
-		glfwGetCursorPos(window, &mouse_x, &mouse_y);
-		input.mouse_pos_now[0] = mouse_x;
-		input.mouse_pos_now[1] = mouse_y;
 
 		camera_update_rotation(&cam, 0.0006f, input);
 		camera_update_position(&cam, time_delta, input);
@@ -106,6 +104,28 @@ int main(void)
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		/* mouse input */
+		if(!glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
+			just_hit_right_click = false;
+			glfwSetInputMode(window, GLFW_CURSOR,
+					GLFW_CURSOR_NORMAL);
+			continue;
+		}
+
+		double mouse_x, mouse_y;
+		glfwGetCursorPos(window, &mouse_x, &mouse_y);
+		input.mouse_pos_now[0] = mouse_x;
+		input.mouse_pos_now[1] = mouse_y;
+
+		if(!just_hit_right_click) {
+			just_hit_right_click = true;
+			input.mouse_pos_last[0] = mouse_x;
+			input.mouse_pos_last[1] = mouse_y;
+			just_hit_right_click = true;
+		}
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
 
 	glDeleteProgram(fbo_shader);
