@@ -5,11 +5,11 @@
 #include "e_gldef.h"
 
 enum rlayer_formats {
-	REN_NONE,
-	REN_ALPHA,
-	REN_RG,
-	REN_RGB,
-	REN_RGBA,
+	REN_NONE = GL_NONE,
+	REN_ALPHA = GL_ALPHA,
+	REN_RG = GL_RG,
+	REN_RGB = GL_RGB,
+	REN_RGBA = GL_RGBA,
 };
 
 /* Render layer for displaying pixels and adding shaders and shit */
@@ -17,8 +17,12 @@ struct rlayer {
 	uint fbo, rbo, tex;
 };
 
+void rlayers_init(void);
 struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt);
 void rlayer_bind_and_clear(struct rlayer l, float r, float g, float b, float a);
+void rlayer_unbind_all(void);
+void rlayer_draw(struct rlayer l);
 void rlayer_destroy(struct rlayer *layer);
+void rlayers_terminate(void);
 
 #endif

@@ -16,7 +16,11 @@ typedef float vec2[2];
 char *file_read_data(const char *path);
 void vec2_copy(vec2 src, vec2 dst);
 void vec2_sub(vec2 a, vec2 b, vec2 o);
+void vec3_copy(vec3 src, vec3 dst);
+void vec3_add(vec3 a, vec3 b, vec3 o);
 void mat4_zero(mat4 m);
+void mat4_identity(mat4 m);
+void mat4_trans(mat4 m, vec3 v);
 void mat4_perspective(float fovd, float aspect,
 		float near, float far, mat4 out);
 

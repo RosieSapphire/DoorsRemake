@@ -3,6 +3,9 @@
 #include "e_shader.h"
 #include "e_model.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define WIDTH 1920
 #define HEIGHT 1080
 #define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
@@ -17,31 +20,20 @@ void axis_controls_draw(struct mesh *sphermesh,
 int main(void)
 {
 	context_init(WIDTH, HEIGHT, "DOORS (Remake)");
+	rlayers_init();
 	struct rlayer layer = rlayer_create(WIDTH, HEIGHT, REN_RGB);
 
-	/*
-	GLuint base_shader =
+	uint base_shader =
 		shader_create("shaders/base.vert", "shaders/base.frag");
-	GLuint fbo_shader =
-		shader_create("shaders/fbo.vert", "shaders/fbo.frag");
-		*/
+	int proj_loc =      shader_get_loc(base_shader, "u_proj");
+	int view_loc =      shader_get_loc(base_shader, "u_view");
+	int model_loc =     shader_get_loc(base_shader, "u_model");
 
-	/*
-	int projection_loc = shader_get_loc(base_shader, "u_projection");
-	int view_loc =       shader_get_loc(base_shader, "u_view");
-	int view_pos_loc =   shader_get_loc(base_shader, "u_view_pos");
-	int color_mul_loc =  shader_get_loc(base_shader, "u_color_mul");
-	int model_loc =      shader_get_loc(base_shader, "u_model");
-	*/
-
-	mat4 projection;
-	mat4_perspective(70.0f, ASPECT_RATIO, 0.1f, 50, projection);
+	mat4 proj;
+	mat4_perspective(90.0f, ASPECT_RATIO, 0.1f, 10.0f, proj);
 	// struct camera cam = {{0, 0, 2}, RM_PI * 0.5f, 0};
 
-	/*
-	struct model cube_model = model_load("models/stud.glb");
-	struct model sphere_model = model_load("models/sphere.glb");
-	*/
+	struct model cube = model_load("models/shape.glb");
 	struct input input;
 
 	/*
@@ -56,22 +48,22 @@ int main(void)
 		input = context_get_input(input);
 
 		rlayer_bind_and_clear(layer, 0.05f, 0.1f, 0.2f, 1.0f);
-		/*
-		rm_mat4 model;
-		rm_mat4 view;
-		camera_get_view_mat4(cam, view);
 
-		glUseProgram(basshader);
+		mat4 view;
+		mat4 model;
+		mat4_identity(view);
+		mat4_trans(view, (vec3){0, 0, -6});
+		cube.pos[0] = context_get_time();
+		model_get_mat4(cube, model);
+		// camera_get_view_mat4(cam, view);
 
-		mesh_get_model_mat4(*cubmesh, model);
+		shader_use(base_shader);
 		shader_uni_mat4(model_loc, model);
 		shader_uni_mat4(view_loc, view);
-		shader_uni_mat4(projection_loc, projection);
-		shader_uni_vec3f(view_pos_loc, cam.eypos);
-		shader_uni_vec3f(color_mul_loc, RM_VEC3F_ONE);
-		mesh_draw(cubmesh, basshader, 0);
-		render_layer_draw(layer, fbo_shader, WIDTH, HEIGHT);
-		*/
+		shader_uni_mat4(proj_loc, proj);
+		model_draw(cube, 0);
+		rlayer_unbind_all();
+		rlayer_draw(layer);
 
 		context_poll_and_swap_buffers();
 
@@ -83,12 +75,9 @@ int main(void)
 	}
 
 	rlayer_destroy(&layer);
-	/*
-	glDeleteProgram(fbo_shader);
-	glDeleteProgram(basshader);
-	mesh_destroy(cubmesh);
-	mesh_destroy(sphermesh);
-	*/
+	rlayers_terminate();
+	shader_destroy(base_shader);
+	model_unload(&cube);
 	context_terminate();
 
 	return 0;

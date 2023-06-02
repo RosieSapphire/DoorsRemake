@@ -1,14 +1,11 @@
 #version 330 core
 
 in vec2 o_uv;
-in vec3 o_vert_col;
 in vec3 o_norm;
 in vec3 o_frag_pos;
 
 uniform sampler2D u_tex;
-uniform vec3 u_view_pos;
 uniform bool u_is_using_tex;
-uniform vec3 u_color_mul;
 
 out vec4 frag_color;
 
@@ -25,9 +22,6 @@ void main()
 	if(u_is_using_tex) {
  		base = texture(u_tex, o_uv).xyz;
 	}
-
- 	base *= o_vert_col;
-	base *= u_color_mul;
 
 	frag_color = vec4((ambient + diffuse) * base, 1.0);
 }

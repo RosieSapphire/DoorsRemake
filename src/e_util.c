@@ -31,9 +31,33 @@ void vec2_sub(vec2 a, vec2 b, vec2 o)
 	o[1] = a[1] - b[1];
 }
 
+void vec3_copy(vec3 src, vec3 dst)
+{
+	bcopy(src, dst, sizeof(vec3));
+}
+
+void vec3_add(vec3 a, vec3 b, vec3 o)
+{
+	o[0] = a[0] + b[0];
+	o[1] = a[1] + b[1];
+	o[2] = a[2] + b[2];
+}
+
 void mat4_zero(mat4 m)
 {
 	bzero(m, sizeof(mat4));
+}
+
+void mat4_identity(mat4 m)
+{
+	mat4_zero(m);
+	for(int i = 0; i < 4; i++)
+		m[i][i] = 1;
+}
+
+void mat4_trans(mat4 m, vec3 v)
+{
+	vec3_add(m[3], v, m[3]);
 }
 
 void mat4_perspective(float fovd, float aspect,

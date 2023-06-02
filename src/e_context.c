@@ -15,11 +15,6 @@ void context_init(uint width, uint height, const char *title)
 	context_window = glfwCreateWindow(width, height, title, NULL, NULL);
 	glfwMakeContextCurrent(context_window);
 	glfwSetInputMode(context_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glEnable(GL_DEPTH);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
 	glfwMakeContextCurrent(context_window);
 
 	/* center the monitor */
@@ -30,6 +25,13 @@ void context_init(uint width, uint height, const char *title)
 	window_x = (monitor_w >> 1) - (width >> 1);
 	window_y = (monitor_h >> 1) - (height >> 1);
 	glfwSetWindowPos(context_window, window_x, window_y);
+
+	/* Configure OpenGL rendering state */
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_BACK);
+	// glFrontFace(GL_CCW);
 }
 
 bool context_is_running(void)

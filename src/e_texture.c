@@ -1,12 +1,12 @@
-#include <glad/gl.h>
-#include "texture.h"
+#include "e_texture.h"
+#include "e_gldef.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "e_stb_image.h"
 
-GLuint texture_load(const char *path)
+uint texture_load(const char *path)
 {
-	GLuint id;
+	uint id;
 	int width, height, comp;
 
 	stbi_set_flip_vertically_on_load(1);
@@ -33,9 +33,9 @@ GLuint texture_load(const char *path)
 
 }
 
-GLuint texture_create_empty(int width, int height)
+uint texture_create_empty(int width, int height)
 {
-	GLuint tex;
+	uint tex;
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
@@ -47,4 +47,9 @@ GLuint texture_create_empty(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	return tex;
+}
+
+void texture_unload(uint *tex)
+{
+	glDeleteTextures(1, tex);
 }

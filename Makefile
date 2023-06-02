@@ -1,5 +1,5 @@
 CC=cc
-CFLAGS=-Wall -Wextra -O2
+CFLAGS=-Wall -Wextra -O2 -g3
 INC=-Iinclude -I/usr/local
 GLFW_LIB=$(shell pkg-config --libs glfw3)
 LIB=-lm $(GLFW_LIB) -lassimp -lGL

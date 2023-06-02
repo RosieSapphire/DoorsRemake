@@ -1,4 +1,4 @@
-.cache
+.cache/
 *.json
 funny_block_game
 *.o

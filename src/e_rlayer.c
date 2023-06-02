@@ -1,6 +1,28 @@
 #include "e_rlayer.h"
+#include "e_shader.h"
+#include "e_mesh.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+static uint shader;
+static struct mesh quad;
+
+void rlayers_init(void)
+{
+	shader = shader_create("shaders/fbo.vert", "shaders/fbo.frag");
+
+	struct vertex verts[] = {
+		{{-1, -1, 0}, {0, 0}, {0}, {0}, {0}},
+		{{ 1, -1, 0}, {1, 0}, {0}, {0}, {0}},
+		{{-1,  1, 0}, {0, 1}, {0}, {0}, {0}},
+		{{ 1,  1, 0}, {1, 1}, {0}, {0}, {0}},
+	};
+
+	uint indis[] = { 0, 1, 2, 2, 1, 3 };
+	uint vert_cnt = sizeof(verts) / sizeof(*verts);
+	uint indi_cnt = sizeof(indis) / sizeof(*indis);
+	quad = mesh_create(vert_cnt, indi_cnt, verts, indis);
+}
 
 struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt)
 {
@@ -28,8 +50,9 @@ struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt)
 
 	int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if(fbo_status != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "Failed to create framebuffer: %d\n",
-				fbo_status);
+		fprintf(stderr, "Failed to create framebuffer: %d "
+				"(Occured at line %d)\n",
+				fbo_status, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 
@@ -47,8 +70,39 @@ void rlayer_bind_and_clear(struct rlayer l, float r, float g, float b, float a)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void rlayer_unbind_all(void)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void rlayer_draw(struct rlayer l)
+{
+	int tex_loc = shader_get_loc(shader, "u_tex");
+	if(tex_loc == -1) {
+		fprintf(stderr, "Failed to find shader loc 'u_tex' "
+				"in shader %d.\n", shader);
+		exit(EXIT_FAILURE);
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	glBindVertexArray(quad.vao);
+	shader_use(shader);
+	shader_uni_int(tex_loc, 0);
+	glBindTexture(GL_TEXTURE_2D, l.tex);
+	glDrawElements(GL_TRIANGLES, quad.indi_cnt, GL_UNSIGNED_INT, quad.indis);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+	glEnable(GL_DEPTH_TEST);
+}
+
 void rlayer_destroy(struct rlayer *layer)
 {
 	glDeleteFramebuffers(1, &layer->fbo);
 	glDeleteTextures(1, &layer->tex);
+}
+
+void rlayers_terminate(void)
+{
+	shader_destroy(shader);
+	mesh_destroy(&quad);
 }
