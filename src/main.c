@@ -1,80 +1,58 @@
-#include <assert.h>
-#include <stdbool.h>
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include <math.h>
-#include "sightseer/camera.h"
-
-#include "mesh.h"
-#include "render_layer.h"
-#include "rmath/vec3f.h"
-#include "shader.h"
-#include "sightseer/input.h"
-#include "texture.h"
+#include "e_context.h"
+#include "e_rlayer.h"
+#include "e_shader.h"
 
 #define WIDTH 1920
 #define HEIGHT 1080
 #define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
 
-GLFWwindow *window_create_centered(int width, int height, const char *title);
+/*
+ * TODO: Move this crap somewhere else
+void axis_controls_draw(struct mesh *sphermesh,
+		GLuint color_mul_loc, GLuint model_loc,
+		GLuint shader);
+*/
 
 int main(void)
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	context_init(WIDTH, HEIGHT, "DOORS (Remake)");
+	struct rlayer layer = rlayer_create(WIDTH, HEIGHT, ERL_RGB);
 
-	GLFWwindow *window = window_create_centered(WIDTH, HEIGHT,
-			"PS1 Graphics Test");
-
-	assert(glfwRawMouseMotionSupported());
-
-	glfwMakeContextCurrent(window);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	gladLoadGL(glfwGetProcAddress);
-	glEnable(GL_DEPTH);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-
-	struct render_layer *layer = render_layer_create(WIDTH, HEIGHT);
-
-	GLuint cube_shader =
+	GLuint basshader =
 		shader_create("shaders/base.vert", "shaders/base.frag");
 	GLuint fbo_shader =
 		shader_create("shaders/fbo.vert", "shaders/fbo.frag");
 
-	int projection_loc = shader_get_loc(cube_shader, "u_projection");
-	int view_loc = shader_get_loc(cube_shader, "u_view");
-	int view_pos_loc = shader_get_loc(cube_shader, "u_view_pos");
-	int model_loc = shader_get_loc(cube_shader, "u_model");
+	int projection_loc = shader_get_loc(basshader, "u_projection");
+	int view_loc =       shader_get_loc(basshader, "u_view");
+	int view_pos_loc =   shader_get_loc(basshader, "u_view_pos");
+	int color_mul_loc =  shader_get_loc(basshader, "u_color_mul");
+	int model_loc =      shader_get_loc(basshader, "u_model");
 
-	rm_mat4 projection;
-	struct camera cam = {{0, 0, 2}, RM_PI * 0.5f, 0};
+	mat4 projection;
+	mat4_perspective(70.0f, ASPECT_RATIO, 0.1f, 50, projection);
+	// struct camera cam = {{0, 0, 2}, RM_PI * 0.5f, 0};
 
-	rm_mat4_perspective(70.0f, ASPECT_RATIO, 0.1f, 50, projection);
+	struct mesh *cube_mesh = mesh_create_file("models/stud.glb");
+	struct mesh *sphere_mesh = mesh_create_file("models/sphere.glb");
+	// GLuint crattexture = texturload("textures/test.png");
 
-	struct mesh *test_mesh = mesh_create_file("models/sphere.glb");
-	// GLuint crate_texture = texture_load("textures/test.png");
-
-	float time_last = glfwGetTime();
+	float timlast = glfwGetTime();
 
 	struct input input;
 
 	bool just_hit_right_click = false;
 
 	while(!glfwWindowShouldClose(window)) {
-		float time_now = glfwGetTime();
-		float time_delta = time_now - time_last;
-		time_last = time_now;
+		float timnow = glfwGetTime();
+		float timdelta = timnow - timlast;
+		timlast = timnow;
 
-		camera_update_rotation(&cam, 0.0006f, input);
-		camera_update_position(&cam, time_delta, input);
+		camera_updatrotation(&cam, 0.0006f, input);
+		camera_updatposition(&cam, timdelta, input);
 
-		input.mouse_pos_last[0] = input.mouse_pos_now[0];
-		input.mouse_pos_last[1] = input.mouse_pos_now[1];
+		input.mouspos_last[0] = input.mouspos_now[0];
+		input.mouspos_last[1] = input.mouspos_now[1];
 
 		input.left_held = glfwGetKey(window, GLFW_KEY_A);
 		input.right_held = glfwGetKey(window, GLFW_KEY_D);
@@ -84,21 +62,23 @@ int main(void)
 
 		rm_mat4 model;
 		rm_mat4 view;
-
 		camera_get_view_mat4(cam, view);
-		test_mesh->rot[1] += time_delta;
 
 		render_layer_bind_and_clear(layer, 0.05f, 0.1f, 0.2f, 1.0f);
+		glUseProgram(basshader);
 
-		mesh_get_model_mat4(*test_mesh, model);
-
-		glUseProgram(cube_shader);
+		mesh_get_model_mat4(*cubmesh, model);
 		shader_uni_mat4(model_loc, model);
 		shader_uni_mat4(view_loc, view);
 		shader_uni_mat4(projection_loc, projection);
-		shader_uni_vec3f(view_pos_loc, cam.eye_pos);
-		// mesh_draw(test_mesh, crate_texture);
-		mesh_draw(test_mesh, cube_shader, 0);
+		shader_uni_vec3f(view_pos_loc, cam.eypos);
+		shader_uni_vec3f(color_mul_loc, RM_VEC3F_ONE);
+		mesh_draw(cubmesh, basshader, 0);
+
+		/*
+		axis_controls_draw(sphermesh, color_mul_loc,
+				model_loc, basshader);
+				*/
 
 		render_layer_draw(layer, fbo_shader, WIDTH, HEIGHT);
 
@@ -113,15 +93,15 @@ int main(void)
 			continue;
 		}
 
-		double mouse_x, mouse_y;
-		glfwGetCursorPos(window, &mouse_x, &mouse_y);
-		input.mouse_pos_now[0] = mouse_x;
-		input.mouse_pos_now[1] = mouse_y;
+		double mousx, mousy;
+		glfwGetCursorPos(window, &mousx, &mousy);
+		input.mouspos_now[0] = mousx;
+		input.mouspos_now[1] = mousy;
 
 		if(!just_hit_right_click) {
 			just_hit_right_click = true;
-			input.mouse_pos_last[0] = mouse_x;
-			input.mouse_pos_last[1] = mouse_y;
+			input.mouspos_last[0] = mousx;
+			input.mouspos_last[1] = mousy;
 			just_hit_right_click = true;
 		}
 
@@ -129,9 +109,9 @@ int main(void)
 	}
 
 	glDeleteProgram(fbo_shader);
-	glDeleteProgram(cube_shader);
-	// glDeleteTextures(1, &crate_texture);
-	mesh_destroy(test_mesh);
+	glDeleteProgram(basshader);
+	mesh_destroy(cubmesh);
+	mesh_destroy(sphermesh);
 	render_layer_destroy(layer);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -139,21 +119,37 @@ int main(void)
 	return 0;
 }
 
-GLFWwindow *window_create_centered(int width, int height, const char *title)
+void axis_controls_draw(struct mesh *sphermesh,
+		GLuint color_mul_loc, GLuint model_loc,
+		GLuint shader)
 {
-	GLFWwindow *window = glfwCreateWindow(width, height, title,
-			NULL, NULL);
+	rm_mat4 model;
+	rm_vec3f axis[3] = {
+		RM_VEC3F_X_INIT,
+		RM_VEC3F_Y_INIT,
+		RM_VEC3F_Z_INIT,
+	};
 
-	glfwMakeContextCurrent(window);
+	float offset_values[2] = {
+		0.28f, -0.28f
+	};
 
-	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-	int monitor_w, monitor_h;
-	int window_x, window_y;
+	for(int k = 0; k < 2; k++) {
+		for(int i = 0; i < 3; i++) {
+			shader_uni_vec3f(color_mul_loc, axis[i]);
 
-	glfwGetMonitorWorkarea(monitor, NULL, NULL, &monitor_w, &monitor_h);
-	window_x = (monitor_w >> 1) - (width >> 1);
-	window_y = (monitor_h >> 1) - (height >> 1);
-	glfwSetWindowPos(window, window_x, window_y);
+			for(int j = 0; j < 3; j++) {
+				if(j == i) {
+					sphermesh->pos[j] = offset_values[k];
+					continue;
+				}
 
-	return window;
+				sphermesh->pos[j] = 0.0f;
+			}
+
+			mesh_get_model_mat4(*sphermesh, model);
+			shader_uni_mat4(model_loc, model);
+			mesh_draw(sphermesh, shader, 0);
+		}
+	}
 }

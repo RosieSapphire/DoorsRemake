@@ -8,6 +8,7 @@ in vec3 o_frag_pos;
 uniform sampler2D u_tex;
 uniform vec3 u_view_pos;
 uniform bool u_is_using_tex;
+uniform vec3 u_color_mul;
 
 out vec4 frag_color;
 
@@ -26,6 +27,7 @@ void main()
 	}
 
  	base *= o_vert_col;
+	base *= u_color_mul;
 
 	frag_color = vec4((ambient + diffuse) * base, 1.0);
 }
