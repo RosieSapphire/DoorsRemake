@@ -70,6 +70,9 @@ void model_get_mat4(struct model m, mat4 o)
 {
 	mat4_identity(o);
 	mat4_trans(o, m.pos);
+	mat4_rot(o, (vec3){1, 0, 0}, m.rot[0]);
+	mat4_rot(o, (vec3){0, 1, 0}, m.rot[1]);
+	mat4_rot(o, (vec3){0, 0, 1}, m.rot[2]);
 }
 
 void model_draw(struct model m, uint tex)
