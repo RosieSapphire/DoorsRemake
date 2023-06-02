@@ -10,13 +10,6 @@
 #define HEIGHT 1080
 #define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
 
-/*
- * TODO: Move this crap somewhere else
-void axis_controls_draw(struct mesh *sphermesh,
-		GLuint color_mul_loc, GLuint model_loc,
-		GLuint shader);
-*/
-
 int main(void)
 {
 	context_init(WIDTH, HEIGHT, "DOORS (Remake)");
@@ -53,7 +46,7 @@ int main(void)
 		mat4 model;
 		mat4_identity(view);
 		mat4_trans(view, (vec3){0, 0, -6});
-		cube.pos[0] = context_get_time();
+		cube.rot[1] = context_get_time();
 		model_get_mat4(cube, model);
 		// camera_get_view_mat4(cam, view);
 
@@ -82,40 +75,3 @@ int main(void)
 
 	return 0;
 }
-
-/*
-void axis_controls_draw(struct mesh *sphermesh,
-		GLuint color_mul_loc, GLuint model_loc,
-		GLuint shader)
-{
-	rm_mat4 model;
-	rm_vec3f axis[3] = {
-		RM_VEC3F_X_INIT,
-		RM_VEC3F_Y_INIT,
-		RM_VEC3F_Z_INIT,
-	};
-
-	float offset_values[2] = {
-		0.28f, -0.28f
-	};
-
-	for(int k = 0; k < 2; k++) {
-		for(int i = 0; i < 3; i++) {
-			shader_uni_vec3f(color_mul_loc, axis[i]);
-
-			for(int j = 0; j < 3; j++) {
-				if(j == i) {
-					sphermesh->pos[j] = offset_values[k];
-					continue;
-				}
-
-				sphermesh->pos[j] = 0.0f;
-			}
-
-			mesh_get_model_mat4(*sphermesh, model);
-			shader_uni_mat4(model_loc, model);
-			mesh_draw(sphermesh, shader, 0);
-		}
-	}
-}
-*/
