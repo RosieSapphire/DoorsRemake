@@ -1,5 +1,3 @@
-# Funny Block Game
+# DOORS (Remake)
 
-Funny Block Game is a simple little remake of Roblox I'm working on because
-those bastards banned me one too many times, so this is my "retaliation" if
-you can call it that.
+This is a remake of Doors. I like it, so I decided to remake it. :3
