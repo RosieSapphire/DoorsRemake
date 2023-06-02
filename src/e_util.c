@@ -20,12 +20,24 @@ char *file_read_data(const char *path)
 	return buffer;
 }
 
+void vec2_copy(vec2 src, vec2 dst)
+{
+	bcopy(src, dst, sizeof(vec2));
+}
+
+void vec2_sub(vec2 a, vec2 b, vec2 o)
+{
+	o[0] = a[0] - b[0];
+	o[1] = a[1] - b[1];
+}
+
 void mat4_zero(mat4 m)
 {
 	bzero(m, sizeof(mat4));
 }
 
-void mat4_perspective(float fovd, float aspect, float near, float far, mat4 out)
+void mat4_perspective(float fovd, float aspect,
+		float near, float far, mat4 out)
 {
 	float fovitan = 1.0f / tanf(fovd * DEG_TO_RAD * 0.5f);
 	float z_range = 1.0f / (near - far);

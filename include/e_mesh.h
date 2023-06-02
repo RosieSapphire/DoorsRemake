@@ -9,9 +9,8 @@ struct mesh {
 	uint *indis;
 };
 
-struct mesh mesh_create_data(uint vert_cnt, uint indi_cnt,
+struct mesh mesh_create(uint vert_cnt, uint indi_cnt,
 		struct vertex *verts, uint *indis);
-struct mesh mesh_create_file(const char *path);
 void mesh_destroy(struct mesh *m);
 
 #endif /* ENGINE_MESH_H_ */

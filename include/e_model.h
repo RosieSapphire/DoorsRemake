@@ -8,7 +8,7 @@ struct model {
 	struct mesh *meshes;
 };
 
-struct model model_create_file(const char *path);
-void model_destroy(struct model *m);
+struct model model_load(const char *path);
+void model_unload(struct model *m);
 
 #endif /* ENGINE_MODEL_H_ */

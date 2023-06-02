@@ -49,6 +49,15 @@ void glDeleteBuffers(uint count, uint *buffers);
 void glGenFramebuffers(uint count, uint *fbos);
 void glDeleteFramebuffers(uint count, uint *fbos);
 void glBindFramebuffer(uint target, uint fbo);
+void glFramebufferTexture2D(uint target, uint attach,
+		uint tex_target, uint tex_id, uint mip_level);
 int glCheckFramebufferStatus(uint target);
+
+/* RENDERBUFFERS */
+void glGenRenderbuffers(uint num, uint *rbos);
+void glBindRenderbuffer(uint target, uint rbo);
+void glRenderbufferStorage(uint target, uint param, uint w, uint h);
+void glFramebufferRenderbuffer(uint target, uint attach,
+		uint ren_target, uint rbo_id);
 
 #endif /* ENGINE_GL_DEF_H_ */

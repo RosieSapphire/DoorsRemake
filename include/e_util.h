@@ -14,7 +14,10 @@ typedef float vec2[2];
 #define DEG_TO_RAD  0.01745329251993888889f
 
 char *file_read_data(const char *path);
+void vec2_copy(vec2 src, vec2 dst);
+void vec2_sub(vec2 a, vec2 b, vec2 o);
 void mat4_zero(mat4 m);
-void mat4_perspective(float fovd, float aspect, float near, float far, mat4 out);
+void mat4_perspective(float fovd, float aspect,
+		float near, float far, mat4 out);
 
 #endif /* ENGINE_UTIL_H_ */

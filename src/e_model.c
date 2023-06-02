@@ -4,7 +4,7 @@
 #include <assimp/postprocess.h>
 #include <malloc.h>
 
-struct model model_create_file(const char *path)
+struct model model_load(const char *path)
 {
 	const struct aiScene *scene = aiImportFile(path,
 			aiProcess_CalcTangentSpace |
@@ -24,10 +24,11 @@ struct model model_create_file(const char *path)
 
 	}
 
-	return m;
+	return model;
 }
 
-void model_destroy(struct model *m)
+void model_unload(struct model *m)
 {
-
+	for(uint i = 0; i < m->mesh_cnt; i++)
+		mesh_destroy(m->meshes);
 }

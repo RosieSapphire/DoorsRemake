@@ -4,7 +4,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-struct mesh mesh_create_data(uint vert_cnt, uint indi_cnt,
+struct mesh mesh_create(uint vert_cnt, uint indi_cnt,
 		struct vertex *verts, uint *indis)
 {
 	struct mesh m;
@@ -17,5 +17,6 @@ struct mesh mesh_create_data(uint vert_cnt, uint indi_cnt,
 
 void mesh_destroy(struct mesh *m)
 {
-
+	free(m->verts);
+	free(m->indis);
 }
