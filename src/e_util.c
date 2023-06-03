@@ -54,11 +54,25 @@ void vec3_add(vec3 a, vec3 b, vec3 o)
 	o[2] = a[2] + b[2];
 }
 
+void vec3_muladd(vec3 a, vec3 b, float bs, vec3 o)
+{
+	o[0] = a[0] + b[0] * bs;
+	o[1] = a[1] + b[1] * bs;
+	o[2] = a[2] + b[2] * bs;
+}
+
 void vec3_sub(vec3 a, vec3 b, vec3 o)
 {
 	o[0] = a[0] - b[0];
 	o[1] = a[1] - b[1];
 	o[2] = a[2] - b[2];
+}
+
+void vec3_scale(vec3 x, float s)
+{
+	x[0] *= s;
+	x[1] *= s;
+	x[2] *= s;
 }
 
 float vec3_dot(vec3 a, vec3 b)
@@ -75,7 +89,7 @@ void vec3_cross(vec3 a, vec3 b, vec3 o)
 
 float vec3_len(vec3 x)
 {
-	float mag = vec3_dot(x, x);
+	float mag = sqrtf(vec3_dot(x, x));
 	if(!mag)
 		return 0;
 
