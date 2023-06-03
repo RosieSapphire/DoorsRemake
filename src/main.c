@@ -25,18 +25,13 @@ int main(void)
 
 	mat4 proj;
 	mat4_perspective(70.0f, ASPECT_RATIO, 0.1f, 10.0f, proj);
-	struct camera cam = {{0, 0, 0}, 0, 0};
+	struct camera cam = {{0, 0, 0}, {0, 0, 0}, 0, 0};
 	struct model room = model_load("models/room.glb");
 	struct input input = {0};
 
-	/*
 	float time_last = context_get_time();
 	float delta_time = 0.0f;
-	bool just_hit_right_click = false;
-	*/
-
 	context_set_cursor_locked(true);
-
 	while(context_is_running()) {
 		rlayer_bind_and_clear(layer, 0.05f, 0.1f, 0.2f, 1.0f);
 
@@ -47,7 +42,8 @@ int main(void)
 
 		model_get_mat4(room, model);
 
-		camera_update_input(&cam, input);
+		cam = camera_update_axis(cam, input);
+		cam = camera_move(cam, input, delta_time);
 		camera_get_mat4(cam, view);
 
 		shader_use(base_shader);
@@ -61,11 +57,9 @@ int main(void)
 		context_poll_and_swap_buffers();
 		input = context_get_input(input);
 
-		/*
 		float time_now = context_get_time();
 		delta_time = time_now - time_last;
 		time_last = time_now;
-		*/
 	}
 
 	rlayer_destroy(&layer);
