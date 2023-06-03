@@ -36,5 +36,6 @@ void mat4_rot(mat4 m, vec3 axis, float angle_rad);
 void mat4_lookat(mat4 m, vec3 eye, vec3 focus, vec3 up);
 void mat4_perspective(float fovd, float aspect,
 		float near, float far, mat4 out);
+void mat4_printf(mat4 m);
 
 #endif /* ENGINE_UTIL_H_ */

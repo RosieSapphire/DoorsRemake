@@ -215,3 +215,14 @@ void mat4_perspective(float fovd, float aspect,
 	out[2][3] = -1.0f;
 	out[3][2] = 2.0f * near * far * z_range;
 }
+
+void mat4_printf(mat4 m)
+{
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 4; j++)
+			printf("%f ", m[i][j]);
+
+		printf("\n");
+	}
+	printf("\n");
+}
