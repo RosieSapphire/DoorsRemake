@@ -5,6 +5,7 @@
 
 #define CAM_SENS 0.04f
 #define RUN_MULTIPLIER 2
+#define CAM_HEIGHT 2.1f
 
 #define FORW_SPEED 200.0f
 #define SIDE_SPEED 350.0f
@@ -204,6 +205,8 @@ struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 	vec3 headbob_cal;
 	vec3_sub(c.pos_bob, c.pos_real, headbob_cal);
 	vec3_add(focus, headbob_cal, focus);
+	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, CAM_HEIGHT, c.pos_bob);
+	vec3_muladd(focus, (vec3){0, 1, 0}, CAM_HEIGHT, focus);
 	mat4_lookat(o, c.pos_bob, focus, up);
 	return c;
 }
