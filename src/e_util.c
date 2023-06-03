@@ -20,6 +20,17 @@ char *file_read_data(const char *path)
 	return buffer;
 }
 
+float clampf(float x, float min, float max)
+{
+	if(x > max)
+		return max;
+
+	if(x < min)
+		return min;
+
+	return x;
+}
+
 void vec2_copy(vec2 src, vec2 dst)
 {
 	bcopy(src, dst, sizeof(vec2));
@@ -41,6 +52,47 @@ void vec3_add(vec3 a, vec3 b, vec3 o)
 	o[0] = a[0] + b[0];
 	o[1] = a[1] + b[1];
 	o[2] = a[2] + b[2];
+}
+
+void vec3_sub(vec3 a, vec3 b, vec3 o)
+{
+	o[0] = a[0] - b[0];
+	o[1] = a[1] - b[1];
+	o[2] = a[2] - b[2];
+}
+
+float vec3_dot(vec3 a, vec3 b)
+{
+	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+void vec3_cross(vec3 a, vec3 b, vec3 o)
+{
+	o[0] = a[1] * b[2] - a[2] * b[1];
+	o[1] = a[2] * b[0] - a[0] * b[2];
+	o[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+float vec3_len(vec3 x)
+{
+	float mag = vec3_dot(x, x);
+	if(!mag)
+		return 0;
+
+	return mag;
+}
+
+float vec3_norm(vec3 x)
+{
+	float mag = vec3_len(x);
+	if(!mag)
+		return 0;
+
+	x[0] /= mag;
+	x[1] /= mag;
+	x[2] /= mag;
+
+	return mag;
 }
 
 void mat4_copy(mat4 src, mat4 dst)
@@ -100,6 +152,40 @@ void mat4_rot(mat4 m, vec3 axis, float angle_rad)
 	rot[3][3] = 1.0f;
 
 	mat4_mul(m, rot, m);
+}
+
+void mat4_lookat(mat4 m, vec3 eye, vec3 focus, vec3 up)
+{
+	vec3 f;
+	vec3_sub(focus, eye, f);
+	vec3_norm(f);
+
+	vec3 s;
+	vec3_cross(up, f, s);
+	vec3_norm(s);
+
+	vec3 u;
+	vec3_cross(f, s, u);
+
+	m[0][0] = s[0];
+	m[0][1] = u[0];
+	m[0][2] = f[0];
+	m[0][3] = 0.0f;
+
+	m[1][0] = s[1];
+	m[1][1] = u[1];
+	m[1][2] = f[1];
+	m[1][3] = 0.0f;
+
+	m[2][0] = s[2];
+	m[2][1] = u[2];
+	m[2][2] = f[2];
+	m[2][3] = 0.0f;
+
+	m[3][0] = -vec3_dot(s, eye);
+	m[3][1] = -vec3_dot(u, eye);
+	m[3][2] = -vec3_dot(f, eye);
+	m[3][3] = 1.0f;
 }
 
 void mat4_perspective(float fovd, float aspect,
