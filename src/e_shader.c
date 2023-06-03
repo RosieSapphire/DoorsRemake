@@ -3,6 +3,7 @@
 #include "e_gldef.h"
 #include <stdio.h>
 #include <malloc.h>
+#include <stdlib.h>
 
 uint shader_compile(const char *path, int type)
 {
@@ -42,9 +43,16 @@ uint shader_create(const char *vert_path, const char *frag_path)
 	return program;
 }
 
-uint shader_get_loc(uint s, const char *loc)
+uint shader_get_loc(uint s, const char *name)
 {
-	return glGetUniformLocation(s, loc);
+	int loc = glGetUniformLocation(s, name);
+	if(loc == -1) {
+		fprintf(stderr, "Failed to find loc '%s' in shader %d.\n",
+				name, s);
+		exit(EXIT_FAILURE);
+	}
+
+	return loc;
 }
 
 void shader_use(uint s)
