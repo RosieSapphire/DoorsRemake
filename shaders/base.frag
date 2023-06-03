@@ -11,7 +11,7 @@ out vec4 frag_color;
 
 void main()
 {
-	vec3 light_pos = vec3(2);
+	vec3 light_pos = vec3(0, 2, 3);
 	vec3 light_dir = normalize(light_pos - o_frag_pos);
 	vec3 light_col = vec3(1);
 	vec3 ambient = 0.1 * light_col;
