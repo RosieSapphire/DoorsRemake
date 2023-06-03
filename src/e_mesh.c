@@ -40,7 +40,8 @@ struct mesh mesh_create(uint vert_cnt, uint indi_cnt,
 
 	glGenBuffers(1, &m.ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indis_size, indis, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indis_size,
+			indis, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
