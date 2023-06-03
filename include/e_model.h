@@ -13,7 +13,7 @@ struct model {
 
 struct model model_load(const char *path);
 void model_get_mat4(struct model m, mat4 o);
-void model_draw(struct model m, uint tex);
+void model_draw(struct model m, uint tex, uint shader, mat4 proj, mat4 view);
 void model_unload(struct model *m);
 
 #endif /* ENGINE_MODEL_H_ */
