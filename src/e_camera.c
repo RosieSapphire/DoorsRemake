@@ -7,13 +7,13 @@
 
 #define FORW_SPEED 200.0f
 #define SIDE_SPEED 350.0f
-#define FRICTION 4
+#define FRICTION 6
 #define STOP_SPEED 100.0f
 #define MAX_SPEED 320.0f
 #define AIR_MAX_SPEED 30.0f
 #define ACCELERATE 30.0f
 #define JUMP_FORCE 270.0f
-#define MOVE_SCALAR 0.04f
+#define MOVE_SCALAR 0.02f
 #define GRAVITY 800 
 
 struct camera camera_update_axis(struct camera c, struct input i)
@@ -26,7 +26,7 @@ struct camera camera_update_axis(struct camera c, struct input i)
 
 static bool camera_is_grounded(struct camera c)
 {
-	return c.pos[0] >= 0;
+	return c.pos[1] <= 0;
 }
 
 static struct camera camera_friction(struct camera c, float dt)
@@ -57,7 +57,6 @@ static struct camera camera_accelerate(struct camera c,
 		return c;
 	float accel_speed = fminf(accel * dt * wish_speed, add_speed);
 	vec3_muladd(c.vel, wish_dir, accel_speed, c.vel);
-	printf("%f, %f\n", c.vel[0], c.vel[2]);
 	return c;
 }
 
@@ -102,8 +101,10 @@ static struct camera camera_air_move(struct camera c, struct input i, float dt)
 
 	if(camera_is_grounded(c)) {
 		c.vel[1] = 0;
+		c.pos[1] = 0;
 		c = camera_accelerate(c, wish_dir,
 				wish_speed, ACCELERATE, dt);
+		c.vel[1] -= GRAVITY * dt;
 	} else {
 		c = camera_air_accelerate(c, wish_dir,
 				wish_speed, ACCELERATE, dt);
@@ -121,11 +122,15 @@ struct camera camera_move(struct camera c, struct input i, float dt)
 	camera_get_forw(c, forw);
 	camera_get_right(forw, up, side);
 	
-	if(i.jump_diff)
-		c.vel[1] += JUMP_FORCE;
-
 	c = camera_friction(c, dt);
 	c = camera_air_move(c, i, dt);
+
+	if(camera_is_grounded(c)) {
+		c.pos[1] = 0;
+		if(i.jump_last)
+			c.vel[1] += JUMP_FORCE;
+	}
+
 	vec3_muladd(c.pos, c.vel, dt * MOVE_SCALAR, c.pos);
 	return c;
 }
