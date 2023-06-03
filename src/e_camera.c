@@ -31,7 +31,12 @@ static bool camera_is_grounded(struct camera c)
 
 static struct camera camera_friction(struct camera c, float dt)
 {
-	float speed = vec3_len(c.vel);
+	vec3 ground_vel;
+	vec3_copy(c.vel, ground_vel);
+	ground_vel[1] = 0;
+
+	float speed = vec3_len(ground_vel);
+	printf("%f\n", speed);
 	if(speed < 1) {
 		c.vel[0] = 0;
 		c.vel[2] = 0;
