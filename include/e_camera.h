@@ -4,8 +4,8 @@
 #include "e_context.h"
 
 struct camera {
-	vec3 pos, vel;
-	float yaw, pitch;
+	vec3 pos_real, pos_bob, vel;
+	float yaw, pitch, bob_timer;
 };
 
 struct camera camera_update_axis(struct camera c, struct input i);
@@ -14,6 +14,6 @@ void camera_get_forw(struct camera c, vec3 o);
 void camera_get_up(vec3 o);
 void camera_get_right(vec3 forw, vec3 up, vec3 o);
 void camera_get_focus(struct camera c, vec3 forw, vec3 o);
-void camera_get_mat4(struct camera c, mat4 o);
+struct camera camera_get_mat4(struct camera c, mat4 o, float dt);
 
 #endif

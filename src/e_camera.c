@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define CAM_SENS 0.04f
+#define RUN_MULTIPLIER 2
 
 #define FORW_SPEED 200.0f
 #define SIDE_SPEED 350.0f
@@ -26,7 +27,7 @@ struct camera camera_update_axis(struct camera c, struct input i)
 
 static bool camera_is_grounded(struct camera c)
 {
-	return c.pos[1] <= 0;
+	return c.pos_real[1] <= 0;
 }
 
 static struct camera camera_friction(struct camera c, float dt)
@@ -36,7 +37,6 @@ static struct camera camera_friction(struct camera c, float dt)
 	ground_vel[1] = 0;
 
 	float speed = vec3_len(ground_vel);
-	printf("%f\n", speed);
 	if(speed < 1) {
 		c.vel[0] = 0;
 		c.vel[2] = 0;
@@ -80,7 +80,11 @@ static struct camera camera_air_accelerate(struct camera c,
 
 static struct camera camera_air_move(struct camera c, struct input i, float dt)
 {
-	float fmove = (i.s_last - i.w_last) * FORW_SPEED;
+	float forw_speed = FORW_SPEED;
+	if(i.run_last)
+		forw_speed *= RUN_MULTIPLIER;
+
+	float fmove = (i.s_last - i.w_last) * forw_speed;
 	float smove = (i.d_last - i.a_last) * SIDE_SPEED;
 	vec3 forw, side, up;
 	camera_get_forw(c, forw);
@@ -106,7 +110,7 @@ static struct camera camera_air_move(struct camera c, struct input i, float dt)
 
 	if(camera_is_grounded(c)) {
 		c.vel[1] = 0;
-		c.pos[1] = 0;
+		c.pos_real[1] = 0;
 		c = camera_accelerate(c, wish_dir,
 				wish_speed, ACCELERATE, dt);
 		c.vel[1] -= GRAVITY * dt;
@@ -131,12 +135,12 @@ struct camera camera_move(struct camera c, struct input i, float dt)
 	c = camera_air_move(c, i, dt);
 
 	if(camera_is_grounded(c)) {
-		c.pos[1] = 0;
+		c.pos_real[1] = 0;
 		if(i.jump_last)
 			c.vel[1] += JUMP_FORCE;
 	}
 
-	vec3_muladd(c.pos, c.vel, dt * MOVE_SCALAR, c.pos);
+	vec3_muladd(c.pos_real, c.vel, dt * MOVE_SCALAR, c.pos_real);
 	return c;
 }
 
@@ -162,10 +166,31 @@ void camera_get_right(vec3 forw, vec3 up, vec3 o)
 
 void camera_get_focus(struct camera c, vec3 forw, vec3 o)
 {
-	vec3_add(forw, c.pos, o);
+	vec3_add(forw, c.pos_real, o);
 }
 
-void camera_get_mat4(struct camera c, mat4 o)
+static struct camera camera_calc_headbob(struct camera c,
+		vec3 side, vec3 up, float dt)
+{
+	vec3_copy(c.pos_real, c.pos_bob);
+	vec3 ground_vel;
+	vec3_copy(c.vel, ground_vel);
+	ground_vel[1] = 0;
+	float speed = vec3_len(ground_vel) / MAX_SPEED;
+
+	if(camera_is_grounded(c))
+		c.bob_timer += dt * sqrtf(speed) * 0.8f;
+
+	vec3 headbob = {0, 0, 0};
+	vec3_muladd(headbob, side, sinf(c.bob_timer * 8) * 0.3f, headbob);
+	vec3_muladd(headbob, up, -cosf(c.bob_timer * 16) * 0.2f, headbob);
+	vec3_scale(headbob, speed);
+	vec3_add(c.pos_real, headbob, c.pos_bob);
+
+	return c;
+}
+
+struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 {
 	vec3 forw;
 	vec3 focus;
@@ -173,5 +198,12 @@ void camera_get_mat4(struct camera c, mat4 o)
 	camera_get_focus(c, forw, focus);
 	vec3 up;
 	camera_get_up(up);
-	mat4_lookat(o, c.pos, focus, up);
+	vec3 side;
+	camera_get_right(forw, up, side);
+	c = camera_calc_headbob(c, side, up, dt);
+	vec3 headbob_cal;
+	vec3_sub(c.pos_bob, c.pos_real, headbob_cal);
+	vec3_add(focus, headbob_cal, focus);
+	mat4_lookat(o, c.pos_bob, focus, up);
+	return c;
 }

@@ -28,7 +28,7 @@ int main(void)
 
 	mat4 proj;
 	mat4_perspective(90.0f, ASPECT_RATIO, 0.1f, 128, proj);
-	struct camera cam = {{0, 0, 0}, {0, 0, 0}, 0, 0};
+	struct camera cam = {0};
 	struct model room = model_load("models/room.glb");
 	uint room_tex = texture_load("textures/checker.png");
 	struct input input = {0};
@@ -49,7 +49,7 @@ int main(void)
 		shader_uni_mat4(model_loc, model);
 
 		mat4 view;
-		camera_get_mat4(cam, view);
+		cam = camera_get_mat4(cam, view, delta_time);
 		shader_uni_mat4(view_loc, view);
 		shader_uni_mat4(proj_loc, proj);
 		shader_uni_int(tex_loc, 0);
