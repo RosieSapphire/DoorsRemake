@@ -1,12 +1,24 @@
 #include "e_mesh.h"
 #include "e_gldef.h"
 #include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
+#include "e_shader.h"
+#include "e_util.h"
 
-struct mesh mesh_create(uint vert_cnt, uint indi_cnt,
+struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 		struct vertex *verts, uint *indis)
 {
 	struct mesh m;
+	if(name) {
+		if(strlen(name) >= MESH_NAME_MAXLEN) {
+			fprintf(stderr, "Mesh name is too fucking long: %s\n",
+					name);
+			exit(EXIT_FAILURE);
+		}
+		strncpy(m.name, name, MESH_NAME_MAXLEN);
+	}
+
 	m.vert_cnt = vert_cnt;
 	m.indi_cnt = indi_cnt;
 	size_t verts_size = sizeof(*verts) * vert_cnt; 
@@ -50,8 +62,23 @@ struct mesh mesh_create(uint vert_cnt, uint indi_cnt,
 	return m;
 }
 
-void mesh_draw(struct mesh m, uint tex)
+void mesh_draw(struct mesh m, uint tex, uint shader, mat4 proj, mat4 view)
 {
+	int proj_loc =      shader_get_loc(shader, "u_proj");
+	int view_loc =      shader_get_loc(shader, "u_view");
+	int model_loc =     shader_get_loc(shader, "u_model");
+	int using_tex_loc = shader_get_loc(shader, "u_is_using_tex");
+
+	shader_use(shader);
+	/*
+	printf("%s\n", m.name);
+	mat4_printf(m.matrix);
+	*/
+	shader_uni_mat4(model_loc, m.matrix);
+	shader_uni_mat4(view_loc, view);
+	shader_uni_mat4(proj_loc, proj);
+	shader_uni_int(using_tex_loc, false);
+
 	glBindVertexArray(m.vao);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glDrawElements(GL_TRIANGLES, m.indi_cnt, GL_UNSIGNED_INT, m.indis);
