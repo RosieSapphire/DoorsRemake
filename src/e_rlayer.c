@@ -21,7 +21,7 @@ void rlayers_init(void)
 	uint indis[] = { 0, 1, 2, 2, 1, 3 };
 	uint vert_cnt = sizeof(verts) / sizeof(*verts);
 	uint indi_cnt = sizeof(indis) / sizeof(*indis);
-	quad = mesh_create(vert_cnt, indi_cnt, verts, indis);
+	quad = mesh_create(NULL, vert_cnt, indi_cnt, verts, indis);
 }
 
 struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt)
