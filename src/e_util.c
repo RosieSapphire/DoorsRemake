@@ -31,9 +31,24 @@ float clampf(float x, float min, float max)
 	return x;
 }
 
+float lerpf(float a, float b, float t)
+{
+	return a + (b - a) * clampf(t, 0, 1);
+}
+
 void vec2_copy(vec2 src, vec2 dst)
 {
 	bcopy(src, dst, sizeof(vec2));
+}
+
+void vec3_zero(vec3 x)
+{
+	bzero(x, sizeof(vec3));
+}
+
+void vec3_one(vec3 x)
+{
+	memset(x, 1, sizeof(vec3));
 }
 
 void vec2_sub(vec2 a, vec2 b, vec2 o)
@@ -68,11 +83,16 @@ void vec3_sub(vec3 a, vec3 b, vec3 o)
 	o[2] = a[2] - b[2];
 }
 
+void vec3_scale_to(vec3 i, float s, vec3 o)
+{
+	o[0] = i[0] * s;
+	o[1] = i[1] * s;
+	o[2] = i[2] * s;
+}
+
 void vec3_scale(vec3 x, float s)
 {
-	x[0] *= s;
-	x[1] *= s;
-	x[2] *= s;
+	vec3_scale_to(x, s, x);
 }
 
 float vec3_dot(vec3 a, vec3 b)
@@ -145,27 +165,34 @@ void mat4_mul(mat4 a, mat4 b, mat4 o)
 
 void mat4_rot(mat4 m, vec3 axis, float angle_rad)
 {
-	mat4 rot;
-	mat4_zero(rot);
+	float sina = sinf(angle_rad);
+	float cosa = cosf(angle_rad);
+	
+	mat4 rotation = MAT4_IDENTITY_INIT;
+	float x = axis[0];
+	float y = axis[1];
+	float z = axis[2];
+	
+	rotation[0][0] = cosa + (1.0f - cosa) * x * x;
+	rotation[1][0] = (1.0f - cosa) * x * y - sina * z;
+	rotation[2][0] = (1.0f - cosa) * x * z + sina * y;
+	
+	rotation[0][1] = (1.0f - cosa) * y * x + sina * z;
+	rotation[1][1] = cosa + (1.0f - cosa) * y * y;
+	rotation[2][1] = (1.0f - cosa) * y * z - sina * x;
+	
+	rotation[0][2] = (1.0f - cosa) * z * x - sina * y;
+	rotation[1][2] = (1.0f - cosa) * z * y + sina * x;
+	rotation[2][2] = cosa + (1.0f - cosa) * z * z;
 
-	const float angle_sin = sinf(angle_rad);
-	const float angle_cos = cosf(angle_rad);
+	mat4_mul(m, rotation, m);
+}
 
-	rot[0][0] = angle_cos + (axis[0] * axis[0]) * (1 - angle_cos);
-	rot[1][0] = axis[0] * axis[1] * (1 - angle_cos) - axis[2] * angle_sin;
-	rot[2][0] = axis[0] * axis[2] * (1 - angle_cos) + axis[1] * angle_sin;
-
-	rot[0][1] = axis[1] * axis[0] * (1 - angle_cos) + axis[2] * angle_sin;
-	rot[1][1] = angle_cos + (axis[1] * axis[1]) * (1 - angle_cos);
-	rot[2][1] = axis[1] * axis[2] * (1 - angle_cos) - axis[0] * angle_sin;
-
-	rot[0][2] = axis[2] * axis[0] * (1 - angle_cos) - axis[1] * angle_sin;
-	rot[1][2] = axis[2] * axis[1] * (1 - angle_cos) + axis[0] * angle_sin;
-	rot[2][2] = angle_cos + (axis[2] * axis[2]) * (1 - angle_cos);
-
-	rot[3][3] = 1.0f;
-
-	mat4_mul(m, rot, m);
+void mat4_rot_euler(mat4 m, vec3 euler)
+{
+	mat4_rot(m, (vec3){1, 0, 0}, euler[0]);
+	mat4_rot(m, (vec3){0, 1, 0}, euler[1]);
+	mat4_rot(m, (vec3){0, 0, 1}, euler[2]);
 }
 
 void mat4_lookat(mat4 m, vec3 eye, vec3 focus, vec3 up)
@@ -181,20 +208,18 @@ void mat4_lookat(mat4 m, vec3 eye, vec3 focus, vec3 up)
 	vec3 u;
 	vec3_cross(f, s, u);
 
+	mat4_zero(m);
 	m[0][0] = s[0];
 	m[0][1] = u[0];
 	m[0][2] = f[0];
-	m[0][3] = 0.0f;
 
 	m[1][0] = s[1];
 	m[1][1] = u[1];
 	m[1][2] = f[1];
-	m[1][3] = 0.0f;
 
 	m[2][0] = s[2];
 	m[2][1] = u[2];
 	m[2][2] = f[2];
-	m[2][3] = 0.0f;
 
 	m[3][0] = -vec3_dot(s, eye);
 	m[3][1] = -vec3_dot(u, eye);
@@ -214,6 +239,11 @@ void mat4_perspective(float fovd, float aspect,
 	out[2][2] = (near + far) * z_range;
 	out[2][3] = -1.0f;
 	out[3][2] = 2.0f * near * far * z_range;
+}
+
+void mat4_get_pos(mat4 m, vec3 o)
+{
+	vec3_copy(m[3], o);
 }
 
 void mat4_printf(mat4 m)
