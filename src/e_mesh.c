@@ -10,6 +10,9 @@ struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 		struct vertex *verts, uint *indis)
 {
 	struct mesh m;
+	vec3_zero(m.pos);
+	vec3_zero(m.rot);
+	vec3_one(m.scale);
 	if(name) {
 		if(strlen(name) >= MESH_NAME_MAXLEN) {
 			fprintf(stderr, "Mesh name is too fucking long: %s\n",
@@ -70,10 +73,6 @@ void mesh_draw(struct mesh m, uint tex, uint shader, mat4 proj, mat4 view)
 	int using_tex_loc = shader_get_loc(shader, "u_is_using_tex");
 
 	shader_use(shader);
-	/*
-	printf("%s\n", m.name);
-	mat4_printf(m.matrix);
-	*/
 	shader_uni_mat4(model_loc, m.matrix);
 	shader_uni_mat4(view_loc, view);
 	shader_uni_mat4(proj_loc, proj);
