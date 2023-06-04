@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define WIDTH 1920
-#define HEIGHT 1080
+#define WIDTH 640
+#define HEIGHT 480
 #define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
 
 int main(void)
@@ -38,6 +38,28 @@ int main(void)
 
 		mat4 view;
 		cam = camera_get_mat4(cam, view, delta_time);
+		
+		struct mesh *door_mesh = model_find_mesh_by_name(room, "Door");
+		vec3 door_pos;
+		mat4_get_pos(door_mesh->matrix, door_pos);
+		vec3 a, b;
+		vec3_copy(cam.pos_real, a);
+		vec3_copy(door_pos, b);
+		vec3 dist_vec;
+		vec3_sub(b, a, dist_vec);
+		float dist = vec3_len(dist_vec);
+
+		static float door_timer = 0.0f;
+		if(dist <= 2.2f)
+			door_timer += delta_time * 2;
+		else
+			door_timer -= delta_time * 2;
+
+		door_timer = clampf(door_timer, 0, 1);
+		printf("%f\n", door_timer);
+		door_mesh->rot[1] = lerpf(0, -PI_HALF, door_timer);
+
+		model_recalc_mesh_matrices(room);
 		model_draw(room, 0, base_shader, proj, view);
 		rlayer_unbind_all();
 		rlayer_draw(layer);
