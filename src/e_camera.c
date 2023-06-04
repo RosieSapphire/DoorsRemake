@@ -5,7 +5,7 @@
 
 #define CAM_SENS 0.04f
 #define RUN_MULTIPLIER 2
-#define CAM_HEIGHT 2.1f
+#define CAM_HEIGHT 2.6f
 
 #define FORW_SPEED 200.0f
 #define SIDE_SPEED 350.0f
