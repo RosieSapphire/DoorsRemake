@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 1920
+#define HEIGHT 1080
 #define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
 
 int main(void)
@@ -50,13 +50,13 @@ int main(void)
 		float dist = vec3_len(dist_vec);
 
 		static float door_timer = 0.0f;
-		if(dist <= 2.2f)
+		// if(dist <= 2.2f)
+		if(input.run_last)
 			door_timer += delta_time * 2;
 		else
 			door_timer -= delta_time * 2;
 
 		door_timer = clampf(door_timer, 0, 1);
-		printf("%f\n", door_timer);
 		door_mesh->rot[1] = lerpf(0, -PI_HALF, door_timer);
 
 		model_recalc_mesh_matrices(room);
