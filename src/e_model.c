@@ -18,43 +18,28 @@ static void assimp_mat_from_node(mat4 o, const struct aiNode *node)
 }
 
 static void model_mul_mesh_matrices(struct model model,
-		const struct aiNode *node, mat4 parent_mat, mat4 root_mat)
+		const struct aiNode *node, mat4 parent_mat)
 {
 	struct mesh *mesh = model_find_mesh_by_name(model, node->mName.data);
 	if(!mesh)
 		return;
 
-	assimp_mat_from_node(mesh->matrix, node);
-	
-	if(!strcmp("Handle", mesh->name)) {
-		mat4 par_local_mat;
-		assimp_mat_from_node(par_local_mat, node->mParent);
-		vec3 par_local_pos;
-		mat4_get_pos(par_local_mat, par_local_pos);
-		vec3_printf(par_local_pos);
-
-		vec3 local_pos;
-		mat4_get_pos(mesh->matrix, local_pos);
-		// mat4_mul_vec3(parent_mat, local_pos);
-		vec3_zero(mesh->matrix[3]);
-		mat4_trans(mesh->matrix, par_local_pos);
-		mat4_rot_euler(mesh->matrix, :wqa
-		return;
-	}
-
-	mat4_mul(mesh->matrix, parent_mat, mesh->matrix);
-	mat4_rot_euler(mesh->matrix, mesh->rot);
-	mat4_trans(mesh->matrix, mesh->pos);
+	mat4 local_mat;
+	mat4 final_mat;
+	assimp_mat_from_node(local_mat, node);
+	mat4_mul(parent_mat, local_mat, final_mat);
+	mat4_trans(final_mat, mesh->pos);
+	mat4_rot_euler(final_mat, mesh->rot);
+	mat4_copy(final_mat, mesh->matrix);
 
 	for(uint i = 0; i < node->mNumChildren; i++)
 		model_mul_mesh_matrices(model, node->mChildren[i],
-				mesh->matrix, root_mat);
+				mesh->matrix);
 }
 
 void model_recalc_mesh_matrices(struct model m)
 {
-	model_mul_mesh_matrices(m, m.scene->mRootNode,
-			MAT4_IDENTITY, MAT4_IDENTITY);
+	model_mul_mesh_matrices(m, m.scene->mRootNode, MAT4_IDENTITY);
 }
 
 struct model model_load(const char *path)
@@ -133,6 +118,17 @@ struct mesh *model_find_mesh_by_name(struct model m, const char *name)
 	fprintf(stderr, "Failed to find mesh '%s' in array size %d\n",
 			name, m.mesh_cnt);
 	return NULL;
+}
+
+float model_get_mesh_dist_from_point(struct model model,
+		const char *mesh_name, vec3 p)
+{
+	struct mesh *mesh = model_find_mesh_by_name(model, mesh_name);
+	vec3 world_pos;
+	mat4_get_pos(mesh->matrix, world_pos);
+	vec3 dist_vec;
+	vec3_sub(world_pos, p, dist_vec);
+	return vec3_len(dist_vec);
 }
 
 void model_get_mat4(struct model m, mat4 o)
