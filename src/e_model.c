@@ -7,33 +7,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void model_mul_mesh_matrices(struct model model,
-		const struct aiNode *node, mat4 root_mat)
+static void assimp_mat_from_node(mat4 o, const struct aiNode *node)
 {
-	struct mesh *mesh = model_find_mesh_by_name(model, node->mName.data);
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++) {
-			float *matf = (float *)&node->mTransformation;
-			mesh->matrix[i][j] = matf[j * 4 + i];
+			float *matf_cur = (float *)&node->mTransformation;
+			o[i][j] = matf_cur[j * 4 + i];
 		}
 	}
+}
 
-	mat4 translation = MAT4_IDENTITY_INIT;
-	mat4_trans(translation, mesh->pos);
-	mat4 rotation = MAT4_IDENTITY_INIT;
-	mat4_rot(rotation, (vec3){0, 1, 0}, mesh->rot[1]);
-	mat4_mul(mesh->matrix, root_mat, mesh->matrix);
-	mat4_mul(mesh->matrix, translation, mesh->matrix);
-	mat4_mul(mesh->matrix, rotation, mesh->matrix);
+static void model_mul_mesh_matrices(struct model model,
+		const struct aiNode *node, mat4 parent_mat, mat4 root_mat)
+{
+	struct mesh *mesh = model_find_mesh_by_name(model, node->mName.data);
+	if(!mesh)
+		return;
+
+	assimp_mat_from_node(mesh->matrix, node);
+	
+	if(!strcmp("Handle", mesh->name)) {
+		mat4 par_local_mat;
+		assimp_mat_from_node(par_local_mat, node->mParent);
+		vec3 par_local_pos;
+		mat4_get_pos(par_local_mat, par_local_pos);
+		vec3_printf(par_local_pos);
+
+		vec3 local_pos;
+		mat4_get_pos(mesh->matrix, local_pos);
+		// mat4_mul_vec3(parent_mat, local_pos);
+		vec3_zero(mesh->matrix[3]);
+		mat4_trans(mesh->matrix, par_local_pos);
+		mat4_rot_euler(mesh->matrix, :wqa
+		return;
+	}
+
+	mat4_mul(mesh->matrix, parent_mat, mesh->matrix);
+	mat4_rot_euler(mesh->matrix, mesh->rot);
+	mat4_trans(mesh->matrix, mesh->pos);
 
 	for(uint i = 0; i < node->mNumChildren; i++)
-		model_mul_mesh_matrices(model,
-				node->mChildren[i], mesh->matrix);
+		model_mul_mesh_matrices(model, node->mChildren[i],
+				mesh->matrix, root_mat);
 }
 
 void model_recalc_mesh_matrices(struct model m)
 {
-	model_mul_mesh_matrices(m, m.scene->mRootNode, MAT4_IDENTITY);
+	model_mul_mesh_matrices(m, m.scene->mRootNode,
+			MAT4_IDENTITY, MAT4_IDENTITY);
 }
 
 struct model model_load(const char *path)
@@ -92,7 +113,7 @@ struct model model_load(const char *path)
 		free(indis);
 	}
 
-	model_mul_mesh_matrices(model, model.scene->mRootNode, MAT4_IDENTITY);
+	model_recalc_mesh_matrices(model);
 
 	/* default transform */
 	vec3_copy((vec3){0, 0, 0}, model.pos);
