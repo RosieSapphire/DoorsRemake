@@ -62,6 +62,16 @@ void vec3_copy(vec3 src, vec3 dst)
 	bcopy(src, dst, sizeof(vec3));
 }
 
+void vec3_negate_to(vec3 i, vec3 o)
+{
+	vec3_scale_to(i, -1, o);
+}	
+
+void vec3_negate(vec3 x)
+{
+	vec3_negate_to(x, x);
+}
+
 void vec3_add(vec3 a, vec3 b, vec3 o)
 {
 	o[0] = a[0] + b[0];
@@ -129,6 +139,11 @@ float vec3_norm(vec3 x)
 	return mag;
 }
 
+void vec3_printf(vec3 x)
+{
+	printf("%f, %f, %f\n", x[0], x[1], x[2]);
+}
+
 void mat4_copy(mat4 src, mat4 dst)
 {
 	bcopy(src, dst, sizeof(mat4));
@@ -161,6 +176,63 @@ void mat4_mul(mat4 a, mat4 b, mat4 o)
 		for(int col = 0; col < 4; col++)
 			for(int ind = 0; ind < 4; ind++)
 				o[col][row] += a_tmp[ind][row] * b[col][ind];
+}
+
+void mat4_mul_vec3(mat4 m, vec3 o)
+{
+	o[0] = m[0][0] * o[0] + m[1][0] * o[1] + m[2][0] * o[2] + m[3][0] * 1.0f;
+	o[1] = m[0][1] * o[0] + m[1][1] * o[1] + m[2][1] * o[2] + m[3][1] * 1.0f;
+	o[2] = m[0][2] * o[0] + m[1][2] * o[1] + m[2][2] * o[2] + m[3][2] * 1.0f;
+}
+
+void mat4_invert(mat4 mat)
+{
+	float a = mat[0][0], b = mat[0][1], c = mat[0][2], d = mat[0][3],
+	      e = mat[1][0], f = mat[1][1], g = mat[1][2], h = mat[1][3],
+	      i = mat[2][0], j = mat[2][1], k = mat[2][2], l = mat[2][3],
+	      m = mat[3][0], n = mat[3][1], o = mat[3][2], p = mat[3][3];
+	
+	float t[6];
+	t[0] = k * p - o * l; t[1] = j * p - n * l; t[2] = j * o - n * k;
+	t[3] = i * p - m * l; t[4] = i * o - m * k; t[5] = i * n - m * j;
+	
+	mat[0][0] =  f * t[0] - g * t[1] + h * t[2];
+	mat[1][0] =-(e * t[0] - g * t[3] + h * t[4]);
+	mat[2][0] =  e * t[1] - f * t[3] + h * t[5];
+	mat[3][0] =-(e * t[2] - f * t[4] + g * t[5]);
+	
+	mat[0][1] =-(b * t[0] - c * t[1] + d * t[2]);
+	mat[1][1] =  a * t[0] - c * t[3] + d * t[4];
+	mat[2][1] =-(a * t[1] - b * t[3] + d * t[5]);
+	mat[3][1] =  a * t[2] - b * t[4] + c * t[5];
+	
+	t[0] = g * p - o * h; t[1] = f * p - n * h; t[2] = f * o - n * g;
+	t[3] = e * p - m * h; t[4] = e * o - m * g; t[5] = e * n - m * f;
+	
+	mat[0][2] =  b * t[0] - c * t[1] + d * t[2];
+	mat[1][2] =-(a * t[0] - c * t[3] + d * t[4]);
+	mat[2][2] =  a * t[1] - b * t[3] + d * t[5];
+	mat[3][2] =-(a * t[2] - b * t[4] + c * t[5]);
+	
+	t[0] = g * l - k * h; t[1] = f * l - j * h; t[2] = f * k - j * g;
+	t[3] = e * l - i * h; t[4] = e * k - i * g; t[5] = e * j - i * f;
+	
+	mat[0][3] =-(b * t[0] - c * t[1] + d * t[2]);
+	mat[1][3] =  a * t[0] - c * t[3] + d * t[4];
+	mat[2][3] =-(a * t[1] - b * t[3] + d * t[5]);
+	mat[3][3] =  a * t[2] - b * t[4] + c * t[5];
+	
+	float det = 1.0f / (a * mat[0][0] + b * mat[1][0]
+	            + c * mat[2][0] + d * mat[3][0]);
+	
+	mat4_scale(mat, det);
+}
+
+void mat4_scale(mat4 x, float s)
+{
+	for(int i = 0; i < 4; i++)
+		for(int j = 0; j < 4; j++)
+			x[i][j] *= s;
 }
 
 void mat4_rot(mat4 m, vec3 axis, float angle_rad)
@@ -250,7 +322,7 @@ void mat4_printf(mat4 m)
 {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++)
-			printf("%f ", m[i][j]);
+			printf("%f ", m[j][i]);
 
 		printf("\n");
 	}
