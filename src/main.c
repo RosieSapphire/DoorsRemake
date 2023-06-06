@@ -8,21 +8,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define WIDTH 1920
-#define HEIGHT 1080
-#define ASPECT_RATIO ((float)WIDTH / (float)HEIGHT)
+#define DOOR_OPEN_DISTANCE 2.2f
 
 int main(void)
 {
-	context_init(WIDTH, HEIGHT, "DOORS (Remake)");
+	uint win_width, win_height;
+	context_init(&win_width, &win_height, "DOORS (Remake)");
 	rlayers_init();
-	struct rlayer layer = rlayer_create(WIDTH, HEIGHT, REN_RGB);
+	struct rlayer layer = rlayer_create(win_width, win_height, REN_RGB);
 
 	uint base_shader =
 		shader_create("shaders/base.vert", "shaders/base.frag");
 
 	mat4 proj;
-	mat4_perspective(90.0f, ASPECT_RATIO, 0.1f, 128, proj);
+	float aspect_ratio = (float)win_width / (float)win_height;
+	mat4_perspective(90.0f, aspect_ratio, 0.1f, 128, proj);
 	struct camera cam = {0};
 	struct model room = model_load("models/room.glb");
 	struct input input = {0};
@@ -39,19 +39,26 @@ int main(void)
 		mat4 view;
 		cam = camera_get_mat4(cam, view, delta_time);
 		
-		static float door_timer = 0.0f;
-		if(model_get_mesh_dist_from_point(room, "Door", cam.pos_real)
-				<= 2.2f)
-			door_timer += delta_time * 2;
-		else
-			door_timer -= delta_time * 2;
-
-		door_timer = clampf(door_timer, 0, 1);
 		struct mesh *door_mesh = model_find_mesh_by_name(room, "Door");
-		door_mesh->rot[1] = lerpf(0, -PI_HALF, door_timer);
+		room.pos[0] = 0;
 
-		model_recalc_mesh_matrices(room);
-		model_draw(room, 0, base_shader, proj, view);
+		static float door_timers[5] = {0.0f};
+		static bool doors_opened[5] = {false};
+		for(int i = 0; i < 5; i++) {
+			if(model_mesh_dist_point(room, "Door", cam.pos_real)
+					<= DOOR_OPEN_DISTANCE)
+				doors_opened[i] = true;
+
+			if(doors_opened[i]) {
+				door_timers[i] += delta_time * 2;
+				door_timers[i] = clampf(door_timers[i], 0, 1);
+			}
+
+			door_mesh->rot[1] = lerpf(0, -PI_HALF, door_timers[i]);
+			model_recalc_mesh_matrices(room);
+			model_draw(room, 0, base_shader, proj, view);
+			room.pos[0] += 9.6f;
+		}
 		rlayer_unbind_all();
 		rlayer_draw(layer);
 
