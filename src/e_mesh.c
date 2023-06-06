@@ -13,6 +13,7 @@ struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 	vec3_zero(m.pos);
 	vec3_zero(m.rot);
 	vec3_one(m.scale);
+	m.is_visible = true;
 	if(name) {
 		if(strlen(name) >= MESH_NAME_MAXLEN) {
 			fprintf(stderr, "Mesh name is too fucking long: %s\n",
@@ -68,6 +69,9 @@ struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 void mesh_draw(struct mesh m, uint tex, uint shader,
 		mat4 proj, mat4 view, mat4 offset)
 {
+	if(!m.is_visible)
+		return;
+
 	int proj_loc =      shader_get_loc(shader, "u_proj");
 	int view_loc =      shader_get_loc(shader, "u_view");
 	int model_loc =     shader_get_loc(shader, "u_model");
