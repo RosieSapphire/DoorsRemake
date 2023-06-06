@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 /* GENERAL CONTEXT */
-void context_init(uint width, uint height, const char *title);
+void context_init(uint *width, uint *height, const char *title);
 bool context_is_running(void);
 float context_get_time(void);
 void context_set_cursor_locked(bool toggle);

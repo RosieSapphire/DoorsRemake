@@ -5,26 +5,27 @@
 
 GLFWwindow *context_window = NULL;
 
-void context_init(uint width, uint height, const char *title)
+void context_init(uint *width, uint *height, const char *title)
 {
 	/* setting up GLFW's funny goofy shit */
 	glfwInit();
+	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
+	glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
+	glfwWindowHint(GLFW_GREEN_BITS, vidmode->greenBits);
+	glfwWindowHint(GLFW_BLUE_BITS, vidmode->blueBits);
+	glfwWindowHint(GLFW_REFRESH_RATE, vidmode->refreshRate);
+	glfwWindowHint(GLFW_DECORATED, false);
+	*width = vidmode->width;
+	*height = vidmode->height;
+	printf("%d, %d\n", vidmode->width, vidmode->height);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	context_window = glfwCreateWindow(width, height, title, NULL, NULL);
+	context_window = glfwCreateWindow(vidmode->width,
+			vidmode->height, title, NULL, NULL);
 	glfwMakeContextCurrent(context_window);
 	glfwSetInputMode(context_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwMakeContextCurrent(context_window);
-
-	/* center the monitor */
-	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-	int monitor_w, monitor_h;
-	int window_x, window_y;
-	glfwGetMonitorWorkarea(monitor, NULL, NULL, &monitor_w, &monitor_h);
-	window_x = (monitor_w >> 1) - (width >> 1);
-	window_y = (monitor_h >> 1) - (height >> 1);
-	glfwSetWindowPos(context_window, window_x, window_y);
 
 	/* Configure OpenGL rendering state */
 	glEnable(GL_DEPTH_TEST);
