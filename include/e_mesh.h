@@ -19,7 +19,8 @@ struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 		struct vertex *verts, uint *indis);
 struct mesh *mesh_find_by_name(const char *name,
 		struct mesh *array, uint array_len);
-void mesh_draw(struct mesh m, uint tex, uint shader, mat4 proj, mat4 view);
+void mesh_draw(struct mesh m, uint tex, uint shader,
+		mat4 proj, mat4 view, mat4 offset);
 void mesh_destroy(struct mesh *m);
 
 #endif /* ENGINE_MESH_H_ */

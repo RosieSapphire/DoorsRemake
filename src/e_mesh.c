@@ -65,7 +65,8 @@ struct mesh mesh_create(const char *name, uint vert_cnt, uint indi_cnt,
 	return m;
 }
 
-void mesh_draw(struct mesh m, uint tex, uint shader, mat4 proj, mat4 view)
+void mesh_draw(struct mesh m, uint tex, uint shader,
+		mat4 proj, mat4 view, mat4 offset)
 {
 	int proj_loc =      shader_get_loc(shader, "u_proj");
 	int view_loc =      shader_get_loc(shader, "u_view");
@@ -73,7 +74,10 @@ void mesh_draw(struct mesh m, uint tex, uint shader, mat4 proj, mat4 view)
 	int using_tex_loc = shader_get_loc(shader, "u_is_using_tex");
 
 	shader_use(shader);
-	shader_uni_mat4(model_loc, m.matrix);
+	mat4 model_mat = MAT4_IDENTITY_INIT;
+	mat4_mul(model_mat, offset, model_mat);
+	mat4_mul(model_mat, m.matrix, model_mat);
+	shader_uni_mat4(model_loc, model_mat);
 	shader_uni_mat4(view_loc, view);
 	shader_uni_mat4(proj_loc, proj);
 	shader_uni_int(using_tex_loc, false);
