@@ -120,12 +120,14 @@ struct mesh *model_find_mesh_by_name(struct model m, const char *name)
 	return NULL;
 }
 
-float model_get_mesh_dist_from_point(struct model model,
-		const char *mesh_name, vec3 p)
+float model_mesh_dist_point(struct model model, const char *mesh_name, vec3 p)
 {
 	struct mesh *mesh = model_find_mesh_by_name(model, mesh_name);
 	vec3 world_pos;
 	mat4_get_pos(mesh->matrix, world_pos);
+	mat4 model_trans = MAT4_IDENTITY_INIT;
+	mat4_trans(model_trans, model.pos);
+	mat4_mul_vec3(model_trans, world_pos);
 	vec3 dist_vec;
 	vec3_sub(world_pos, p, dist_vec);
 	return vec3_len(dist_vec);
@@ -140,8 +142,12 @@ void model_get_mat4(struct model m, mat4 o)
 
 void model_draw(struct model m, uint tex, uint shader, mat4 proj, mat4 view)
 {
-	for(uint i = 0; i < m.mesh_cnt; i++)
-		mesh_draw(m.meshes[i], tex, shader, proj, view);
+	for(uint i = 0; i < m.mesh_cnt; i++) {
+		mat4 model_mat = MAT4_IDENTITY_INIT;
+		mat4_trans(model_mat, m.pos);
+		mat4_rot_euler(model_mat, m.rot);
+		mesh_draw(m.meshes[i], tex, shader, proj, view, model_mat);
+	}
 }
 
 void model_unload(struct model *m)
