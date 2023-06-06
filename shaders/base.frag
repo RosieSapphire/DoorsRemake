@@ -13,7 +13,7 @@ void main()
 {
 	vec3 light_pos = vec3(0, 2, 3);
 	vec3 light_dir = normalize(light_pos - o_frag_pos);
-	vec3 light_col = vec3(1);
+	vec3 light_col = vec3(0.8, 0.6, 0.5);
 	vec3 ambient = 0.1 * light_col;
 	vec3 diffuse = max(dot(o_norm, light_dir), 0.0) * light_col;
 
