@@ -49,7 +49,8 @@ struct model model_load(const char *path)
 			aiProcess_CalcTangentSpace |
 			aiProcess_OptimizeMeshes |
 			aiProcess_Triangulate |
-			aiProcess_JoinIdenticalVertices);
+			aiProcess_JoinIdenticalVertices |
+			aiProcess_GenBoundingBoxes);
 
 	if(!model.scene) {
 		fprintf(stderr, "Failed to load model from '%s'\n", path);
@@ -120,7 +121,7 @@ struct mesh *model_find_mesh_by_name(struct model m, const char *name)
 	return NULL;
 }
 
-float model_mesh_dist_point(struct model model, const char *mesh_name, vec3 p)
+float model_mesh_dist(struct model model, const char *mesh_name, vec3 p)
 {
 	struct mesh *mesh = model_find_mesh_by_name(model, mesh_name);
 	vec3 world_pos;
@@ -131,6 +132,15 @@ float model_mesh_dist_point(struct model model, const char *mesh_name, vec3 p)
 	vec3 dist_vec;
 	vec3_sub(world_pos, p, dist_vec);
 	return vec3_len(dist_vec);
+}
+
+void model_get_aabb_size(struct model m, vec3 o)
+{
+	uint root_ind = m.scene->mRootNode->mMeshes[0];
+	struct aiAABB test = m.scene->mMeshes[root_ind]->mAABB;
+	o[0] = test.mMax.x - test.mMin.x;
+	o[1] = test.mMax.y - test.mMin.y;
+	o[2] = test.mMax.z - test.mMin.z;
 }
 
 void model_get_mat4(struct model m, mat4 o)

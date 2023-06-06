@@ -15,7 +15,8 @@ struct model {
 
 struct model model_load(const char *path);
 struct mesh *model_find_mesh_by_name(struct model m, const char *name);
-float model_mesh_dist_point(struct model model, const char *mesh_name, vec3 p);
+float model_mesh_dist(struct model model, const char *mesh_name, vec3 p);
+void model_get_aabb_size(struct model m, vec3 o);
 void model_recalc_mesh_matrices(struct model m);
 void model_get_mat4(struct model m, mat4 o);
 void model_draw(struct model m, uint tex, uint shader, mat4 proj, mat4 view);
