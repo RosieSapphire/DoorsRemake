@@ -1,15 +1,16 @@
 #include "e_camera.h"
 #include <math.h>
 #include "e_context.h"
+#include "e_util.h"
 #include <stdio.h>
 
 #define CAM_SENS 0.04f
-#define RUN_MULTIPLIER 2
+#define RUN_MULTIPLIER 3
 #define CAM_HEIGHT 2.6f
 
 #define FORW_SPEED 200.0f
 #define SIDE_SPEED 350.0f
-#define FRICTION 6
+#define FRICTION 4
 #define STOP_SPEED 100.0f
 #define MAX_SPEED 320.0f
 #define AIR_MAX_SPEED 30.0f
@@ -207,6 +208,13 @@ struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 	vec3_add(focus, headbob_cal, focus);
 	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, CAM_HEIGHT, c.pos_bob);
 	vec3_muladd(focus, (vec3){0, 1, 0}, CAM_HEIGHT, focus);
+	static float side_vel_lerp = 0.0f;
+	float side_vel_cur = vec3_dot(c.vel, side) / MAX_SPEED;
+	side_vel_lerp = lerpf(side_vel_lerp, side_vel_cur * 0.08f, dt * 16);
+	vec3 side_vel_vec;
+	vec3_scale_to(side, side_vel_lerp, side_vel_vec);
+	vec3_add(up, side_vel_vec, up);
+	vec3_norm(up);
 	mat4_lookat(o, c.pos_bob, focus, up);
 	return c;
 }
