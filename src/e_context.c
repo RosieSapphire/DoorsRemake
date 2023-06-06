@@ -10,15 +10,18 @@ void context_init(uint *width, uint *height, const char *title)
 	/* setting up GLFW's funny goofy shit */
 	glfwInit();
 	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
+	GLFWvidmode *vidmode = (GLFWvidmode *)glfwGetVideoMode(monitor);
 	glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
 	glfwWindowHint(GLFW_GREEN_BITS, vidmode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, vidmode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, vidmode->refreshRate);
 	glfwWindowHint(GLFW_DECORATED, false);
+	/*
+	vidmode->width >>= 1;
+	vidmode->height >>= 1;
+	*/
 	*width = vidmode->width;
 	*height = vidmode->height;
-	printf("%d, %d\n", vidmode->width, vidmode->height);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
