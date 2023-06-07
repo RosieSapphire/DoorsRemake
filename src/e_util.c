@@ -20,15 +20,25 @@ char *file_read_data(const char *path)
 	return buffer;
 }
 
+float maxf(float a, float b)
+{
+	if(a >= b)
+		return a;
+
+	return b;
+}
+
+float minf(float a, float b)
+{
+	if(a <= b)
+		return a;
+
+	return b;
+}
+
 float clampf(float x, float min, float max)
 {
-	if(x > max)
-		return max;
-
-	if(x < min)
-		return min;
-
-	return x;
+	return minf(maxf(x, min), max);
 }
 
 float lerpf(float a, float b, float t)

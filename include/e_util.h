@@ -21,6 +21,8 @@ typedef float vec2[2];
 #define DEG_TO_RAD  0.01745329251993888889f
 
 char *file_read_data(const char *path);
+float maxf(float a, float b);
+float minf(float a, float b);
 float clampf(float x, float min, float max);
 float lerpf(float a, float b, float t);
 void vec2_copy(vec2 src, vec2 dst);
