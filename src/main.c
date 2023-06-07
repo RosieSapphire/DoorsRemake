@@ -13,6 +13,24 @@
 #define ROOM_COUNT 100
 #define ROOM_VARIANT_COUNT 5
 
+static const int room_chances[ROOM_VARIANT_COUNT] = {
+	40, 26, 14, 18, 2
+};
+
+static int room_randomize(void)
+{
+	int ran = rand() % 100;
+	int cur_weight = 0;
+	for(int j = 0; j < ROOM_VARIANT_COUNT; j++) {
+		cur_weight += room_chances[j];
+		if(ran <= cur_weight) {
+			return j;
+		}
+	}
+
+	return -1;
+}
+
 int main(void)
 {
 	uint win_width, win_height;
@@ -42,10 +60,6 @@ int main(void)
 		model_load("models/room4.glb"), /* big corridor */
 	};
 
-	int room_chances[ROOM_VARIANT_COUNT] = {
-		40, 26, 14, 18, 2
-	};
-
 	int total_percentage = 0;
 	for(int i = 0; i < ROOM_VARIANT_COUNT; i++)
 		total_percentage += room_chances[i];
@@ -57,32 +71,30 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
+	float room_x_offsets[ROOM_COUNT] = {0};
+	float room_z_offsets[ROOM_COUNT] = {0};
+
 	srand((uint)time(NULL));
 	int which_room[ROOM_COUNT] = {0};
-
-	int occur[ROOM_VARIANT_COUNT] = {0};
-
+	float z_accum = 0, x_accum = 0;
 	for(int i = 0; i < ROOM_COUNT; i++) {
-		if(i == 0) {
-			which_room[i] = 0;
-			continue;
-		}
+		if(i > 0)
+			which_room[i] = room_randomize();
 
-		int ran = rand() % 100;
-		int cur_weight = 0;
-		for(int j = 0; j < ROOM_VARIANT_COUNT; j++) {
-			cur_weight += room_chances[j];
-			if(ran <= cur_weight) {
-				which_room[i] = j;
-				occur[j]++;
-				break;
-			}
-		}
+		struct model *cur_room = rooms + which_room[i];
+		struct mesh *door_exit_spawn =
+			model_find_mesh_by_name(*cur_room, "DoorExit");
+		door_exit_spawn->is_visible = false;
+		vec3 door_exit_spawn_pos;
+		mat4_get_pos(door_exit_spawn->matrix, door_exit_spawn_pos);
 
+		vec3 room_size;
+		model_get_aabb_size(*cur_room, room_size);
+		z_accum += door_exit_spawn_pos[2];
+		x_accum += room_size[0];
+		room_z_offsets[i] = z_accum - door_exit_spawn_pos[2];
+		room_x_offsets[i] = x_accum - room_size[0];
 	}
-
-	for(int j = 0; j < ROOM_VARIANT_COUNT; j++)
-		printf("Chose room %d %d times.\n", j, occur[j]);
 
 	while(context_is_running()) {
 		rlayer_bind_and_clear(layer, 0.05f, 0.1f, 0.2f, 1.0f);
@@ -97,59 +109,51 @@ int main(void)
 		static bool doors_opened[ROOM_COUNT] = {false};
 		static int num_doors_open = 0;
 		struct mesh *door_mesh = model_find_mesh_by_name(door, "Door");
-		float room_x_offset = 0;
-		float room_z_offset = 0;
 		vec3_zero(door.pos);
 		for(int i = 0; i < ROOM_VARIANT_COUNT; i++)
 			vec3_zero(rooms[i].pos);
 
-		for(int i = 0; i < ROOM_COUNT; i++) {
-			if(doors_opened[i]) {
+		int iend = num_doors_open + 1;
+		for(int i = 0; i < iend; i++) {
+			/* Update door animation if they are moving */
+			if(i - 4 >= 0)
+				doors_opened[i - 4] = false;
+
+			if(doors_opened[i])
 				door_timers[i] += delta_time * 2;
-				door_timers[i] = clampf(door_timers[i], 0, 1);
-			}
+			else
+				door_timers[i] -= delta_time * 2;
 
+			door_timers[i] = clampf(door_timers[i], 0, 1);
 			door_mesh->rot[1] = lerpf(0, -PI_HALF, door_timers[i]);
-			struct model *prev_room = NULL;
-			if(i > 0)
-				prev_room = rooms + which_room[i - 1];
 
+			/* Offset the current room relative
+			 * to the previous ones */
 			struct model *cur_room = rooms + which_room[i];
-			vec3 room_size;
-			model_get_aabb_size(*cur_room, room_size);
-			float room_width = room_size[0];
-			cur_room->pos[0] = room_x_offset;
+			if(i > 0) {
+				cur_room->pos[0] = room_x_offsets[i];
+				cur_room->pos[2] = room_z_offsets[i];
+			}
 
 			model_recalc_mesh_matrices(*cur_room);
 			model_recalc_mesh_matrices(door);
-			struct mesh *door_exit_obj_last = NULL;
-			if(i > 0)
-				door_exit_obj_last =
-					model_find_mesh_by_name(*prev_room,
-							"DoorExit");
-			struct mesh *door_exit_obj_cur =
+
+			/* Do the same thing for the doors */
+			struct mesh *door_exit_obj =
 				model_find_mesh_by_name(*cur_room, "DoorExit");
-			door_exit_obj_cur->is_visible = false;
+			door_exit_obj->is_visible = false;
 
-			vec3 door_exit_pos_cur;
-			vec3 door_exit_pos_last;
-			if(i > 0)
-				mat4_get_pos(door_exit_obj_last->matrix,
-						door_exit_pos_last);
+			vec3 door_exit_pos;
+			mat4_get_pos(door_exit_obj->matrix, door_exit_pos);
+			vec3_add(door.pos, door_exit_pos, door.pos);
 
-			mat4_get_pos(door_exit_obj_cur->matrix,
-					door_exit_pos_cur);
+			if(i < num_doors_open - 4)
+				continue;
 
-			cur_room->pos[2] = room_z_offset;
-			if(i > 0)
-				room_z_offset += door_exit_pos_cur[2];
-
-			vec3_add(door.pos, door_exit_pos_cur, door.pos);
-			room_x_offset += room_width;
-
+			/* Check for interaction with a given door */
 			if(model_mesh_dist(door, "Door", cam.pos_real)
 					<= DOOR_OPEN_DISTANCE &&
-					!doors_opened[i]) {
+					i == num_doors_open) {
 				doors_opened[i] = true;
 				num_doors_open++;
 			}
