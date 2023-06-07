@@ -11,15 +11,15 @@
 
 #define DOOR_OPEN_DISTANCE 2.2f
 #define ROOM_COUNT 100
-#define ROOM_VARIANT_COUNT 5
+#define ROOM_VARIANT_COUNT 6
 
 static const int room_chances[ROOM_VARIANT_COUNT] = {
-	40, 26, 14, 18, 2
+	0, 40, 26, 14, 18, 2
 };
 
 static int room_randomize(void)
 {
-	int ran = rand() % 100;
+	int ran = (rand() % 100) + 1;
 	int cur_weight = 0;
 	for(int j = 0; j < ROOM_VARIANT_COUNT; j++) {
 		cur_weight += room_chances[j];
@@ -45,6 +45,7 @@ int main(void)
 	float aspect_ratio = (float)win_width / (float)win_height;
 	mat4_perspective(90.0f, aspect_ratio, 0.1f, 128, proj);
 	struct camera cam = {0};
+	cam.pos_real[0] = 2.4f;
 	struct model door = model_load("models/door.glb");
 	struct input input = {0};
 
@@ -53,11 +54,12 @@ int main(void)
 	context_set_cursor_locked(true);
 
 	struct model rooms[ROOM_VARIANT_COUNT] = {
-		model_load("models/room0.glb"), /* box small */
-		model_load("models/room1.glb"), /* box big */
-		model_load("models/room2.glb"), /* turn left */
-		model_load("models/room3.glb"), /* turn right */
-		model_load("models/room4.glb"), /* big corridor */
+		model_load("models/roomstart.glb"), /* starting room */
+		model_load("models/room0.glb"),     /* box small */
+		model_load("models/room1.glb"),     /* box big */
+		model_load("models/room2.glb"),     /* turn left */
+		model_load("models/room3.glb"),     /* turn right */
+		model_load("models/room4.glb"),     /* big corridor */
 	};
 
 	int total_percentage = 0;
