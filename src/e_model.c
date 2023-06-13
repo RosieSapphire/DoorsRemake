@@ -46,10 +46,8 @@ struct model model_load(const char *path)
 {
 	struct model model;
 	model.scene = aiImportFile(path,
-			aiProcess_CalcTangentSpace |
-			aiProcess_OptimizeMeshes |
-			aiProcess_Triangulate |
-			aiProcess_JoinIdenticalVertices |
+			aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes |
+			aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
 			aiProcess_GenBoundingBoxes);
 
 	if(!model.scene) {
