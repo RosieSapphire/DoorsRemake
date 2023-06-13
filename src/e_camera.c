@@ -16,8 +16,9 @@
 #define AIR_MAX_SPEED 30.0f
 #define ACCELERATE 30.0f
 #define JUMP_FORCE 270.0f
-#define MOVE_SCALAR 0.02f
+#define MOVE_SCALAR 0.03f
 #define GRAVITY 800 
+#define HEADBOB_SPEED 8
 
 struct camera camera_update_axis(struct camera c, struct input i)
 {
@@ -184,8 +185,10 @@ static struct camera camera_calc_headbob(struct camera c,
 		c.bob_timer += dt * sqrtf(speed) * 0.8f;
 
 	vec3 headbob = {0, 0, 0};
-	vec3_muladd(headbob, side, sinf(c.bob_timer * 8) * 0.3f, headbob);
-	vec3_muladd(headbob, up, -cosf(c.bob_timer * 16) * 0.2f, headbob);
+	vec3_muladd(headbob, side,
+			sinf(c.bob_timer * HEADBOB_SPEED) * 0.3f, headbob);
+	vec3_muladd(headbob, up,
+			-cosf(c.bob_timer * HEADBOB_SPEED * 2) * 0.2f, headbob);
 	vec3_scale(headbob, speed);
 	vec3_add(c.pos_real, headbob, c.pos_bob);
 
