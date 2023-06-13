@@ -63,11 +63,10 @@ struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt)
 	return layer;
 }
 
-void rlayer_bind_and_clear(struct rlayer l, float r, float g, float b, float a)
+void rlayer_bind(struct rlayer l)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, l.fbo);
-	glClearColor(r, g, b, a);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void rlayer_unbind_all(void)
