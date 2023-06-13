@@ -62,6 +62,8 @@ int main(void)
 		model_load("models/room4.glb"),     /* big corridor */
 	};
 
+	// uint texture = texture_load("textures/test.png");
+
 	int total_percentage = 0;
 	for(int i = 0; i < ROOM_VARIANT_COUNT; i++)
 		total_percentage += room_chances[i];
@@ -99,8 +101,7 @@ int main(void)
 	}
 
 	while(context_is_running()) {
-		rlayer_bind_and_clear(layer, 0.05f, 0.1f, 0.2f, 1.0f);
-
+		rlayer_bind(layer);
 		cam = camera_update_axis(cam, input);
 		cam = camera_move(cam, input, delta_time);
 
