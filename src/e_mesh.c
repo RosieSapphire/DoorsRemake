@@ -84,7 +84,7 @@ void mesh_draw(struct mesh m, uint tex, uint shader,
 	shader_uni_mat4(model_loc, model_mat);
 	shader_uni_mat4(view_loc, view);
 	shader_uni_mat4(proj_loc, proj);
-	shader_uni_int(using_tex_loc, false);
+	shader_uni_int(using_tex_loc, tex > 0);
 
 	glBindVertexArray(m.vao);
 	glBindTexture(GL_TEXTURE_2D, tex);
