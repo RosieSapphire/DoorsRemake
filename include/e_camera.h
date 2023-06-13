@@ -5,7 +5,7 @@
 
 struct camera {
 	vec3 pos_real, pos_bob, vel;
-	float yaw, pitch, bob_timer;
+	float yaw, pitch, bob_timer, grounded_timer;
 };
 
 struct camera camera_update_axis(struct camera c, struct input i);

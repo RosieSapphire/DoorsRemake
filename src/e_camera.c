@@ -117,10 +117,12 @@ static struct camera camera_air_move(struct camera c, struct input i, float dt)
 		c = camera_accelerate(c, wish_dir,
 				wish_speed, ACCELERATE, dt);
 		c.vel[1] -= GRAVITY * dt;
+		c.grounded_timer += dt * 20.94393f;
 	} else {
 		c = camera_air_accelerate(c, wish_dir,
 				wish_speed, ACCELERATE, dt);
 		c.vel[1] -= GRAVITY * dt;
+		c.grounded_timer = 0;
 	}
 
 	return c;
@@ -209,8 +211,19 @@ struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 	vec3 headbob_cal;
 	vec3_sub(c.pos_bob, c.pos_real, headbob_cal);
 	vec3_add(focus, headbob_cal, focus);
+
+
+	float land_bob = (cosf(c.grounded_timer) - 1.0f);
+	if(c.grounded_timer > 0.0f) {
+		land_bob /= c.grounded_timer;
+	}
+	land_bob = lerpf(land_bob, 0.0f, minf(c.grounded_timer / 18.0f, 1.0f));
+
 	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, CAM_HEIGHT, c.pos_bob);
 	vec3_muladd(focus, (vec3){0, 1, 0}, CAM_HEIGHT, focus);
+	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, land_bob, c.pos_bob);
+	vec3_muladd(focus, (vec3){0, 1, 0}, land_bob, focus);
+
 	static float side_vel_lerp = 0.0f;
 	float side_vel_cur = vec3_dot(c.vel, side) / MAX_SPEED;
 	side_vel_lerp = lerpf(side_vel_lerp, side_vel_cur * 0.08f, dt * 16);
