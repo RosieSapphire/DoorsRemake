@@ -114,8 +114,7 @@ static struct camera camera_air_move(struct camera c, struct input i, float dt)
 	if(camera_is_grounded(c)) {
 		c.vel[1] = 0;
 		c.pos_real[1] = 0;
-		c = camera_accelerate(c, wish_dir,
-				wish_speed, ACCELERATE, dt);
+		c = camera_accelerate(c, wish_dir, wish_speed, ACCELERATE, dt);
 		c.vel[1] -= GRAVITY * dt;
 		c.grounded_timer += dt * 20.94393f;
 	} else {
@@ -139,11 +138,47 @@ struct camera camera_move(struct camera c, struct input i, float dt)
 	c = camera_friction(c, dt);
 	c = camera_air_move(c, i, dt);
 
-	if(camera_is_grounded(c)) {
+	bool grounded = camera_is_grounded(c);
+	bool jump_pressed = i.jump_diff && i.jump_last;
+
+	if(grounded) {
+		if(!jump_pressed && !c.jump_queued)
+			c.first_jump = false;
+		else {
+			if(i.jump_last)
+				c.init_jump = true;
+
+			c.jump_queued = false;
+		}
+
 		c.pos_real[1] = 0;
-		if(i.jump_last)
-			c.vel[1] += JUMP_FORCE;
+	} else {
+		if(jump_pressed)
+			c.jump_queued = true;
 	}
+
+	// float jump_timer_last = c.jump_timer;
+	if(c.init_jump) {
+		if(!c.first_jump) {
+			if(c.jump_timer >= 2 * PI) {
+				c.vel[1] += JUMP_FORCE;
+				c.first_jump = true;
+				c.jump_timer = 0;
+				c.init_jump = false;
+			}
+		} else {
+			if(!c.jump_timer) {
+				c.vel[1] += JUMP_FORCE;
+				c.jump_timer = 0;
+				c.init_jump = false;
+			}
+		}
+
+		if(!c.first_jump)
+			c.jump_timer += dt * 24;
+	}
+
+	printf("%d\n", c.first_jump);
 
 	vec3_muladd(c.pos_real, c.vel, dt * MOVE_SCALAR, c.pos_real);
 	return c;
@@ -212,7 +247,7 @@ struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 	vec3_sub(c.pos_bob, c.pos_real, headbob_cal);
 	vec3_add(focus, headbob_cal, focus);
 
-
+	float jump_bounce = (cosf(c.jump_timer) - 1.0f) * 0.4f;
 	float land_bob = (cosf(c.grounded_timer) - 1.0f);
 	if(c.grounded_timer > 0.0f) {
 		land_bob /= c.grounded_timer;
@@ -223,6 +258,8 @@ struct camera camera_get_mat4(struct camera c, mat4 o, float dt)
 	vec3_muladd(focus, (vec3){0, 1, 0}, CAM_HEIGHT, focus);
 	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, land_bob, c.pos_bob);
 	vec3_muladd(focus, (vec3){0, 1, 0}, land_bob, focus);
+	vec3_muladd(c.pos_bob, (vec3){0, 1, 0}, jump_bounce, c.pos_bob);
+	vec3_muladd(focus, (vec3){0, 1, 0}, jump_bounce, focus);
 
 	static float side_vel_lerp = 0.0f;
 	float side_vel_cur = vec3_dot(c.vel, side) / MAX_SPEED;
