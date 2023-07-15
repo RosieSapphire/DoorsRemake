@@ -178,8 +178,6 @@ struct camera camera_move(struct camera c, struct input i, float dt)
 			c.jump_timer += dt * 24;
 	}
 
-	printf("%d\n", c.first_jump);
-
 	vec3_muladd(c.pos_real, c.vel, dt * MOVE_SCALAR, c.pos_real);
 	return c;
 }

@@ -16,10 +16,10 @@ void context_init(uint *width, uint *height, const char *title)
 	glfwWindowHint(GLFW_BLUE_BITS, vidmode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, vidmode->refreshRate);
 	glfwWindowHint(GLFW_DECORATED, false);
-	/*
+
 	vidmode->width >>= 1;
 	vidmode->height >>= 1;
-	*/
+
 	*width = vidmode->width;
 	*height = vidmode->height;
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

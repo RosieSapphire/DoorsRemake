@@ -30,6 +30,8 @@ struct rlayer rlayer_create(uint width, uint height, enum rlayer_formats fmt)
 	glGenFramebuffers(1, &layer.fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, layer.fbo);
 
+	layer.width = width;
+	layer.height = height;
 	glGenTextures(1, &layer.tex);
 	glBindTexture(GL_TEXTURE_2D, layer.tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, fmt, width, height,

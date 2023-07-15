@@ -14,7 +14,7 @@ enum rlayer_formats {
 
 /* Render layer for displaying pixels and adding shaders and shit */
 struct rlayer {
-	uint fbo, rbo, tex;
+	uint fbo, rbo, tex, width, height;
 };
 
 void rlayers_init(void);

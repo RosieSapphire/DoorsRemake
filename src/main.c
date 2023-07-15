@@ -1,3 +1,4 @@
+#include "e_colmesh.h"
 #include "e_context.h"
 #include "e_rlayer.h"
 #include "e_shader.h"
@@ -62,6 +63,9 @@ int main(void)
 		model_load("models/room4.glb"),     /* big corridor */
 	};
 
+	struct collision_mesh test_col =
+		collision_mesh_create(rooms[0].meshes[0]);
+
 	// uint texture = texture_load("textures/test.png");
 
 	int total_percentage = 0;
@@ -78,6 +82,7 @@ int main(void)
 	float room_x_offsets[ROOM_COUNT] = {0};
 	float room_z_offsets[ROOM_COUNT] = {0};
 
+	/* Randomize all the rooms at the start and cache their offset */
 	srand((uint)time(NULL));
 	int which_room[ROOM_COUNT] = {0};
 	float z_accum = 0, x_accum = 0;
@@ -101,6 +106,8 @@ int main(void)
 	}
 
 	while(context_is_running()) {
+		collision_mesh_get_closest_face(test_col, cam.pos_real);
+
 		rlayer_bind(layer);
 		cam = camera_update_axis(cam, input);
 		cam = camera_move(cam, input, delta_time);
@@ -163,6 +170,11 @@ int main(void)
 
 			model_draw(*cur_room, 0, base_shader, proj, view);
 			model_draw(door, 0, base_shader, proj, view);
+			collision_face_draw(
+					test_col.faces[
+					collision_mesh_get_closest_face(
+						test_col, cam.pos_real)],
+					base_shader, cur_room->pos);
 		}
 
 		rlayer_unbind_all();
